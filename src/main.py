@@ -44,7 +44,12 @@ def record_clip(camera, fps, width, height):
 
     for i in range(fps * clip_length):
         ret, frame = camera.read() # read frame from camera
-        frame = cv.putText(frame, time.strftime("%Y-%m-%d %I:%M:%S %p", time.localtime(time.time())), (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 3, cv.LINE_AA)
+
+        timestamp = time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))
+        
+        # draw the text twice to give "outline" effect (ensure the text is visible regardless of frame)
+        frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
+        frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
         video_writer.write(frame)
 
         cv.waitKey(1)
