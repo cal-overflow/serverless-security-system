@@ -64,6 +64,7 @@ The following environment variables may be defined to override the default optio
 | Variable | Default | Purpose |
 | :-: | :-: | :--|
 | `CLIP_LENGTH` | `30` | The length, in seconds, that clips should be saved. |
+| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. |
 
 Pass the environment variables via the command line:
 ##### Docker

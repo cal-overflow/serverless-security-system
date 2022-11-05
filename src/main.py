@@ -3,10 +3,10 @@ import time
 import os
 from fileservices import create_folder
 
-clip_length = int(os.environ.get('CLIP_LENGTH')) if os.environ.get('CLIP_LENGTH') else 10
+clip_length = int(os.getenv('CLIP_LENGTH', 30))
+output_path = os.getenv('OUTPUT_PATH', './tmp')
 
-
-def calibrateCamera():
+def calibrate_camera():
     '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
     camera = cv.VideoCapture(0)
 
@@ -30,9 +30,9 @@ def calibrateCamera():
     return camera, fps, width, height
 
 
-def recordClip(camera, fps, width, height):
+def record_clip(camera, fps, width, height):
     start_time = time.time()
-    folder = f"./tmp/{time.strftime('%Y-%m-%d', time.localtime(start_time))}"
+    folder = f"{output_path}/{time.strftime('%Y-%m-%d', time.localtime(start_time))}"
     create_folder(folder)
 
     filename = f"{folder}/{time.strftime('%H-%M-%S', time.localtime(start_time))}.mp4"
@@ -49,22 +49,21 @@ def recordClip(camera, fps, width, height):
 
         cv.waitKey(1)
     video_writer.release()
-    
 
 
 if __name__ == '__main__':
     print('Calibrating camera...')
-    camera, fps, width, height = calibrateCamera()
+    camera, fps, width, height = calibrate_camera()
     print(f'Camera calibration complete.\nDimensions: {width}x{height}\nFPS: {fps}')
     print(f'Creating {clip_length} second video clips')
 
     video_writer = None
 
-    create_folder('./tmp')
+    create_folder(output_path)
 
     try:
         while True:
-            recordClip(camera, fps, width, height)
+            record_clip(camera, fps, width, height)
     except Exception as e:
         print(f'An error occurred: {e}')
         if video_writer is not None:
