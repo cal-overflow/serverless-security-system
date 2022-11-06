@@ -1,0 +1,32 @@
+name: Deploy AWS Resources
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  REGION: us-east-1
+
+jobs:
+   deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Deploy ${{ env.STACK_NAME }} stack
+        run: |
+          sam deploy --region $REGION --no-fail-on-empty-changeset
+ 
