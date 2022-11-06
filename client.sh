@@ -18,5 +18,5 @@ if [ $# -ge 2 ]; then
   ENVIRONMENT_VARIABLE_ARGUMENTS="$ENVIRONMENT_VARIABLE_ARGUMENTS -e CLIP_LENGTH=$2"
 fi
 
-docker run $ENVIRONMENT_VARIABLE_ARGUMENTS -it --privileged --device="/dev/video0:/dev/video0" -v $(pwd):/app $DOCKER_IMAGE 
+docker run $ENVIRONMENT_VARIABLE_ARGUMENTS -it --privileged --device="/dev/video0:/dev/video0" -v $(pwd):/app --restart=unless-stopped $DOCKER_IMAGE 
 
