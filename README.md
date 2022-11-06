@@ -33,9 +33,14 @@ MacOS/Windows: Run the client software using a python virtual environment.
 - Docker
 
 ```bash
-$ docker run <image name>
+# Run the lastest version (docker image)
+$ ./client.sh
+# Or
+$ ./client.sh latest
+
+# Run a specific version (e.g., 0.0.1)
+$ ./client.sh 0.0.1
 ```
-To use the latest docker image, simply replace `<image name>` with `caloverflow/security-system-client:latest` \
 View all available docker images on the [Docker Hub repository](https://hub.docker.com/repository/docker/caloverflow/security-system-client). 
 
 ### Using Python virtualenv
@@ -64,13 +69,19 @@ The following environment variables may be defined to override the default optio
 | Variable | Default | Purpose |
 | :-: | :-: | :--|
 | `CLIP_LENGTH` | `30` | The length, in seconds, that clips should be saved. |
-| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. |
+| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. Note - this is not currently supported for the Docker configuration. |
 
 Pass the environment variables via the command line:
 ##### Docker
+
 ```bash
-$ docker run <image name> -e <ENV_VARIABLE>=<DESIRED_VALUE>
+$ ./client.sh 
+
+# or (with parameters)
+$ ./client.sh 0.0.1 60
 ```
+Argument 1 is the specific image tag version. Default value of `latest`. \
+Argument 2 is the CLIP_LENGTH envionrment variable. Default value of `30`.
 
 ##### Python command line
 ```bash
