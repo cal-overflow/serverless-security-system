@@ -18,14 +18,18 @@ jobs:
           username: caloverflow
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Get Image tag
-        id: get_image_tag
-        run: |
-          echo "::set-output name=VERSION::${{github.ref_name}}"
+      - name: Set Versions
+        uses: actions/github-script@v4
+        id: get_version
+        with:
+          script: |
+            const tag = context.ref.substring(10)
+            const no_v = tag.replace('v', '')
+            core.setOutput('no-v', no_v)
 
       - name: Build and push image
         uses: docker/build-push-action@v3
         with:
           push: true
-          tags: 'caloverflow/security-system-client:latest,caloverflow/security-system-client:${{ steps.get_image_tag.outputs.DOCKER_IMAGE }}'
+          tags: 'caloverflow/security-system-client:latest,caloverflow/security-system-client:${{ steps.get_version.outputs.no_v }}'
 
