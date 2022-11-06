@@ -77,3 +77,18 @@ $ docker run <image name> -e <ENV_VARIABLE>=<DESIRED_VALUE>
 $ <ENV_VARIABLE>=<DESIRED_VALUE> python src/main.py
 ```
 
+
+### Deploying
+To deploy the Cloudformation stack with all necessary AWS resources, simply add a
+### 1. Create an IAM Role
+In your AWS Account, create a new IAM Role with the permissions you deem necessary. This must include [Cloudformation](https://aws.amazon.com/cloudformation/) and [S3](https://aws.amazon.com/ec2/). Refer to GitHub's docs for [Configuring OpenID Connect in AWS](https://docs.github.com/en/actions/deployment/security-hardening-your-deployments/configuring-openid-connect-in-amazon-web-services) for guidance.
+
+### 2. Add essential secrets to your GitHub repository.
+
+Add the following secrets via **Repository settings** > **Secrets** > **Actions**.
+
+  - `IAM_ROLE_ARN` containing your IAM Role ARN from step 1.
+
+### 3. Trigger a deploy
+To trigger a deploy, simply commit changes to the `main` branch. You may also trigger a deploy within the **Actions** tab on the repository.
+
