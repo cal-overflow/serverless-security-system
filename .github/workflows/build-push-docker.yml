@@ -5,6 +5,9 @@ on:
     tags:
       - v*
 
+permissions:
+  content: read
+
 
 jobs:
   build-deploy-docker:
