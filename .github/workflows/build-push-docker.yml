@@ -5,15 +5,9 @@ on:
     tags:
       - v*
 
-permissions:
-  content: read
-
-
 jobs:
   build-deploy-docker:
     runs-on: ubuntu-latest
-    outputs:
-      DOCKER_IMAGE: ${{ steps.get_image_tag.outputs.DOCKER_IMAGE }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
