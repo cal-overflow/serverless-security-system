@@ -1,0 +1,32 @@
+name: Deploy AWS Resources
+
+on:
+  push:
+    branches:
+      - main
+      - init-pipeline-and-cloud-resources # TODO - remove this branch trigger
+
+permissions:
+  id-token: write
+
+env:
+  REGION: us-east-1
+  STACK_NAME: security-system
+
+jobs:
+   deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Deploy ${{ env.STACK_NAME }} stack
+        run: |
+          sam deploy --stack-name $STACK_NAME --region $REGION --no-fail-on-empty-changeset
+ 

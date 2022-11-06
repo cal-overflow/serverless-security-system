@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "AWS resources for a serverless security system"
+
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Action: 's3:GetObject'
+            Effect: Allow
+            Principal: '*'
+            Resource: 
+              - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+
+Outputs:
+  S3BucketName:
+    Value: !Ref S3Bucket
+    Description: The name of the stacks S3 bucket.
+
