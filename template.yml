@@ -45,7 +45,8 @@ Resources:
           - Effect: Allow
             Action: 's3:*'
             Resource: '*'
-      User: !Ref IAMUser
+      Users:
+        - !Ref IAMUser
 
   IAMUser:
     Type: AWS::IAM::User
