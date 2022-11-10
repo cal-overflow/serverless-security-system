@@ -20,6 +20,46 @@ Resources:
             Resource: 
               - !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
+  S3BucketAccessManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: 'Serverless-Security-System-S3-Write-Access-Policy'
+      Description: 'Managed policy that allows write access to the S3 bucket used for the Serverless-Security-System'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:ListBucket' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+          - Effect: Allow
+            Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+  IAMPermissionsBoundary:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: 'IAM-S3-Only-PermissionsBoundary'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:*'
+            Resource: '*'
+
+  IAMUser:
+    Type: AWS::IAM::User
+    Properties: 
+      UserName: 'security-system-client'
+      Path: '/apps/'
+      ManagedPolicyArns: 
+        - !Ref S3BucketAccessManagedPolicy
+      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy:${IAMPermissionsBoundary}'
+      Policies: 
+        - Policy
+      Tags: 
+        - Key: 'Description'
+          Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
+
 
 Outputs:
   S3BucketName:
