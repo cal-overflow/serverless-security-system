@@ -21,6 +21,9 @@ def create_folder(path):
         os.makedirs(path)
 
 async def upload_files(folder):
+    sync_files_s3(folder)
+
+def sync_files_s3(folder):
     '''Recursively uploads files in the given folder to S3 bucket'''
 
     # TODO - implement error handling (i.e., network failures, etc.)
@@ -29,7 +32,7 @@ async def upload_files(folder):
         item_full_path = f'{folder}/{item}'
 
         if os.path.isdir(item_full_path):
-            upload_files(item_full_path)
+            sync_files_s3(item_full_path)
         if os.path.isfile(item_full_path):
             upload_filename = item_full_path.lstrip(output_path)
             print(f'Uploading file {upload_filename}')
