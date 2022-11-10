@@ -55,8 +55,8 @@ Resources:
       ManagedPolicyArns: 
         - !Ref S3BucketAccessManagedPolicy
       # PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy:${IAMPermissionsBoundary}'
-      Policies: 
-        - Policy
+      # Policies: 
+      #   - Policy
       Tags: 
         - Key: 'Description'
           Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
