@@ -45,6 +45,7 @@ Resources:
           - Effect: Allow
             Action: 's3:*'
             Resource: '*'
+      User: !Ref IAMUser
 
   IAMUser:
     Type: AWS::IAM::User
@@ -53,7 +54,7 @@ Resources:
       Path: '/apps/'
       ManagedPolicyArns: 
         - !Ref S3BucketAccessManagedPolicy
-      PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy:${IAMPermissionsBoundary}'
+      # PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy:${IAMPermissionsBoundary}'
       Policies: 
         - Policy
       Tags: 
