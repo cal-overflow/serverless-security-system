@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - aws-authentication # TODO - delete this branch trigger!
   workflow_dispatch:
 
 permissions:
