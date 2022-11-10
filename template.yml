@@ -35,19 +35,6 @@ Resources:
             Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
-  IAMPermissionsBoundary:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: 'IAM-S3-Only-PermissionsBoundary'
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action: 's3:*'
-            Resource: '*'
-      Users:
-        - !Ref IAMUser
-
   IAMUser:
     Type: AWS::IAM::User
     Properties: 
@@ -61,6 +48,25 @@ Resources:
       Tags: 
         - Key: 'Description'
           Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
+
+  IAMPermissionsBoundary:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: 'IAM-S3-Only-PermissionsBoundary'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:*'
+            Resource: '*'
+      Users:
+        - !Ref IAMUser
+
+  IAMUserAccessKey:
+    Type: AWS::IAM::AccessKey
+    Properties:
+      UserName: !Ref IAMUser
+
 
 
 Outputs:
