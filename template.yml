@@ -67,6 +67,13 @@ Resources:
     Properties:
       UserName: !Ref IAMUser
 
+  AccessKeySecret:
+    Type: AWS::SecretsManager::Secret
+    Properties:
+      Name: 'secury-system-client-user-access-key-secret'
+      Description: !Sub 'Access Key Secret for ${IAMUser} user'
+      SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
+
 
 
 Outputs:
