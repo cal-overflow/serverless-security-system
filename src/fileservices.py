@@ -1,6 +1,5 @@
 import os
 import boto3
-import asyncio
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -20,10 +19,7 @@ def create_folder(path):
     if not os.path.exists(path):
         os.makedirs(path)
 
-async def upload_files(folder):
-    sync_files_s3(folder)
-
-def sync_files_s3(folder):
+def upload_files(folder):
     '''Recursively uploads files in the given folder to S3 bucket'''
 
     # TODO - implement error handling (i.e., network failures, etc.)
@@ -32,11 +28,11 @@ def sync_files_s3(folder):
         item_full_path = f'{folder}/{item}'
 
         if os.path.isdir(item_full_path):
-            sync_files_s3(item_full_path)
+            upload_files(item_full_path)
         if os.path.isfile(item_full_path):
             upload_filename = item_full_path.lstrip(output_path)
-            print(f'Uploading file {upload_filename}')
-            s3.upload_file(item_full_path, S3_BUCKET, upload_filename)
+            print(f'Uploading clip')
+            s3.upload_file(item_full_path, S3_BUCKET, upload_filename, ExtraArgs={'ContentType': "video/mp4"})
 
             # Delete the file locally
             os.remove(item_full_path)

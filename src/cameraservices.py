@@ -41,10 +41,12 @@ def record_clip(camera, fps, width, height):
     create_folder(folder)
 
     filename = f"{folder}/{time.strftime('%H-%M-%S', time.localtime(start_time))}_{camera_name}.mp4"
-    print(f'New file: {filename}')
+    print('Recording clip')
    
     # Figure out if this video encoding is sufficient (I want it to work on all devices without issues)
-    video_writer = cv.VideoWriter(filename, cv.VideoWriter_fourcc(*'mp4v'), fps, (width, height))
+    # This video encoding might be what I'm looking for. It looks like it is creating mp4 videos that are playing in chrome well. TODO - tesst in other browsers
+    fourcc = cv.VideoWriter_fourcc(*'avc1')
+    video_writer = cv.VideoWriter(filename, fourcc, fps, (width, height))
 
 
     for i in range(fps * clip_length):
