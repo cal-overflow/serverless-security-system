@@ -106,7 +106,7 @@ Resources:
   ProcessVideosLambdaFn:
     Type: AWS::Lambda::Function
     Properties:
-      Role: !GetAtt LambdaFnPolicy.Arn
+      Role: !GetAtt LambdaFnRole.Arn
       Environment:
         Variables:
           S3_BUCKET: !Ref S3Bucket
