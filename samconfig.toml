@@ -8,4 +8,5 @@ confirm_changeset = false
 fail_on_empty_changeset = false
 capabilities = ['CAPABILITY_NAMED_IAM']
 resolve_image_repos = true
+resolve_s3 = true
 
