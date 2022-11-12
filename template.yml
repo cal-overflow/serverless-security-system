@@ -92,7 +92,7 @@ Resources:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub '${AWS::StackName}-ProcessVideosLambdaFn-ManagedPolicy'
-      Descrition: !Sub 'Managed Policy for the Process-Videos Lambda function in ${AWS::StackName}'
+      Description: !Sub 'Managed Policy for the Process-Videos Lambda function in ${AWS::StackName}'
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
