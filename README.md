@@ -66,7 +66,7 @@ $ python src/main.py
 The following environment variables are used by the client. It is recommended that these values are placed within a `.env` file.
 
 | Variable | Default | Purpose | Required |
-| :-: | :-: | :--|
+| :-: | :-: | :-- | :-: |
 | `REGION` | - | The AWS region in which your AWS resources are located. An example is `us-east-1` | ✅ |
 | `S3_BUCKET` | - | The name of the unique S3 bucket to which clips should be synced. | ✅ |
 | `AWS_ACCESS_KEY_ID` | - | The ID of the access key that is to be used for authenticating requests to AWS services (S3). | ✅ |
