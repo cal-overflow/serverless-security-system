@@ -42,9 +42,6 @@ Resources:
       Path: '/apps/'
       ManagedPolicyArns: 
         - !Ref S3BucketAccessManagedPolicy
-      # PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::aws:policy:${IAMPermissionsBoundary}'
-      # Policies: 
-      #   - Policy
       Tags: 
         - Key: 'Description'
           Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
@@ -74,7 +71,52 @@ Resources:
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
+  LambdaFnRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${AWS::StackName}-LambdaFnRole'
+      Description: !Sub "Execution role for the Process-Videos Lambda function in ${AWS::StackName}"
+      ManagedPolicyArns:
+        - !Ref LambdaFnPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action:
+            - 'sts:AssumeRole'
 
+  LambdaFnPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-ProcessVideosLambdaFn-ManagedPolicy'
+      Descrition: !Sub 'Managed Policy for the Process-Videos Lambda function in ${AWS::StackName}'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:ListBucket' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+          - Effect: Allow
+            Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl', 's3:DeleteObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+  ProcessVideosLambdaFn:
+    Type: AWS::Lambda::Function
+    Properties:
+      Role: !GetAtt LambdaFnPolicy.Arn
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+      PackageType: Image
+      Code:
+        # TODO - update this to use cal-overflow alias once it's approved
+        ImageUri: public.ecr.aws/b5g0w5q2/serverless-security-system-process-s3-videos-lambda-fn:latest
+      Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
+      TracingConfig:
+        Mode: Active
 
 Outputs:
   S3BucketName:
