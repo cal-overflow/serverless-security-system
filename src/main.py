@@ -3,19 +3,19 @@ from dotenv import load_dotenv
 import uuid
 import threading
 from fileservices import create_folder, upload_files
-from cameraservices import calibrate_camera, record_clip
+from Camera import Camera
 
 
 load_dotenv()
 
 output_path = os.getenv('OUTPUT_PATH', './tmp')
 clips_per_upload = int(os.getenv('CLIPS_PER_UPLOAD', 50))
+clip_length = int(os.getenv('CLIP_LENGTH', 30))
+camera_name = os.getenv('CAMERA_NAME', f'CAMERA_{uuid.uuid4().hex[:8]}')
 
 
 if __name__ == '__main__':
-    print('Calibrating camera...')
-    camera, fps, width, height = calibrate_camera()
-    print(f'Camera calibration complete.\nDimensions: {width}x{height}\nFPS: {fps}')
+    camera = Camera(camera_name, clip_length)
 
     video_writer = None
 
@@ -25,7 +25,7 @@ if __name__ == '__main__':
         clips_since_last_upload = 0
         uploading_thread = None
         while True:
-            record_clip(camera, fps, width, height)
+            camera.record_clip()
             clips_since_last_upload += 1
             
             if clips_since_last_upload >= clips_per_upload:
