@@ -26,20 +26,21 @@ Ideally, this process will remove footage that is older than a set number of day
 Linux: Run the client software using docker.
 MacOS/Windows: Run the client software using a python virtual environment.
 
-**Note:** This software is intended to be run on linux (i.e., Raspberry Pi). Using docker to run the program becomes [quite challenging on MacOS and Windows machines](https://medium.com/@jijupax/connect-the-webcam-to-docker-on-mac-or-windows-51d894c44468). \
+**Note:** This software is intended to be run on linux (i.e., Raspberry Pi). Using docker to run the program becomes [quite challenging on MacOS and Windows machines](https://medium.com/@jijupax/connect-the-webcam-to-docker-on-mac-or-windows-51d894c44468).
 
 ### Using docker
 #### Requirements
 - Docker
+- [.env file](#environment-variables)
 
 ```bash
 # Run the lastest version (docker image)
 $ ./client.sh
 # Or
-$ ./client.sh latest
+$ ./client.sh latest .env
 
-# Run a specific version (e.g., 0.0.1)
-$ ./client.sh 0.0.1
+# Run a specific version (e.g., 0.0.1) and specific env file (e.g., local.env)
+$ ./client.sh 0.0.1 local.env
 ```
 View all available docker images on the [Docker Hub repository](https://hub.docker.com/repository/docker/caloverflow/security-system-client). 
 
@@ -47,29 +48,46 @@ View all available docker images on the [Docker Hub repository](https://hub.dock
 #### Requirements
 - Python 3.9 or 3.10
 - pip
+- [.env file](#environment-variables)
 
-#### Create virtual environment and install dependencies
+#### Install dependencies in virtualenv
 ```bash
 $ python -m venv ./venv
-$ pip install -r requirements.txt
-```
 
-#### Run the program
-```bash
 # Activate the virtual environment
-$ source ./venv/bin/active
+$ source ./venv/bin/activate
+$ pip install -r requirements.txt
 
 # Run the script
 $ python src/main.py
 ```
 
 #### Environment variables
-The following environment variables may be defined to override the default options
+The following environment variables are used by the client. It is recommended that these values are placed within a `.env` file.
 
-| Variable | Default | Purpose |
+| Variable | Default | Purpose | Required |
 | :-: | :-: | :--|
-| `CLIP_LENGTH` | `30` | The length, in seconds, that clips should be saved. |
-| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. Note - this is not currently supported for the Docker configuration. |
+| `REGION` | - | The AWS region in which your AWS resources are located. An example is `us-east-1` | ✅ |
+| `S3_BUCKET` | - | The name of the unique S3 bucket to which clips should be synced. | ✅ |
+| `AWS_ACCESS_KEY_ID` | - | The ID of the access key that is to be used for authenticating requests to AWS services (S3). | ✅ |
+| `AWS_SECRET_ACCESS_KEY` | - | The secret access key that is to be used for authenticating requests to AWS services (S3). | ✅ |
+| `CAMERA_NAME` | - | The name of the camera used in identifying the origin of clips. If no value is provided, a unique identifier is generated. | ❌ |
+| `CLIP_LENGTH` | `30` | The length, in seconds, that clips should be saved. | ❌ |
+| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. Note - this is not currently supported for the Docker configuration. | ❌ |
+
+To make things simpler, you may copy this base `.env` file and fill out the environment variables as needed.
+```
+# Required
+REGION=
+S3_BUCKET=
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+
+# Optional
+CAMERA_NAME=
+CLIPS_PER_UPLOAD=
+CLIP_LENGTH=
+```
 
 Pass the environment variables via the command line:
 ##### Docker
@@ -77,15 +95,21 @@ Pass the environment variables via the command line:
 ```bash
 $ ./client.sh 
 
-# or (with parameters)
-$ ./client.sh 0.0.1 60
+# With parameters
+# specific tag version (default environment variable file)
+$ ./client.sh 0.0.1
+# latest tag + specific environment variable file
+$ ./client.sh latest local.env
+# specific tag + specific environment variable file
+$ ./client.sh 0.0.1 local.env
 ```
 Argument 1 is the specific image tag version. Default value of `latest`. \
-Argument 2 is the CLIP_LENGTH envionrment variable. Default value of `30`.
+Argument 2 is the path to the environment variable file. Default value of `.env`.
 
 ##### Python command line
+The `.env` file will be automatically picked up by the python program given it is located in the base directory.
 ```bash
-$ <ENV_VARIABLE>=<DESIRED_VALUE> python src/main.py
+$ python src/main.py
 ```
 
 
