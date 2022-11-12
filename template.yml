@@ -112,8 +112,7 @@ Resources:
           S3_BUCKET: !Ref S3Bucket
       PackageType: Image
       Code:
-        # TODO - update this to use cal-overflow alias once it's approved
-        ImageUri: public.ecr.aws/b5g0w5q2/serverless-security-system-process-s3-videos-lambda-fn:latest
+        ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/serverless-security-system-process-s3-videos-lambda-fn:latest'
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
       TracingConfig:
         Mode: Active
