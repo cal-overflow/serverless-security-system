@@ -13,6 +13,7 @@ permissions:
 
 env:
   REGION: us-east-1
+  BUCKET_STACK_NAME: security-system-stack-bucket
 
 jobs:
    deploy:
@@ -27,11 +28,12 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
       
-      - name: Deploy basic S3 bucket (for advanced things like lambda layer)
+      - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
-          same deploy --region $REGION --no-fail-on-empty-changeset -t bucket.template.yml
+          same deploy --region $REGION --no-fail-on-empty-changeset -t bucket.template.yml --stack-name ${{ env.BUCKET_STACK_NAME }}
 
-      - name: Deploy ${{ env.STACK_NAME }} stack
+      - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --no-fail-on-empty-changeset
+          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+          sam deploy --region $REGION --no-fail-on-empty-changeset --s3-bucket $STACK_BUCKET
  
