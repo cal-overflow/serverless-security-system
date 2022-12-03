@@ -26,6 +26,10 @@ jobs:
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
+      
+      - name: Deploy basic S3 bucket (for advanced things like lambda layer)
+        run: |
+          same deploy --region $REGION --no-fail-on-empty-changeset -t bucket.template.yml
 
       - name: Deploy ${{ env.STACK_NAME }} stack
         run: |
