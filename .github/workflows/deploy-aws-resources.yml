@@ -13,7 +13,9 @@ permissions:
 
 env:
   REGION: us-east-1
+  STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
+  LAMBDA_OPENCV_LAYER_NAME: python-opencv-layer
 
 jobs:
    deploy:
@@ -30,21 +32,30 @@ jobs:
       
       - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
-          sam deploy --region $REGION -t bucket.template.yml --stack-name ${{ env.BUCKET_STACK_NAME }}
-          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+          sam deploy --region $REGION -t bucket.template.yml --stack-name $BUCKET_STACK_NAME
+          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_OUTPUT
 
-      - name: Sync lambda layer to S3
+      - name: Create & Publish Lambda layer
         run: |
-          LAYER_NAME='opencv-layer'
+          cd lambda
           
-          cd lambda && docker build -t opencv-layer -f opencv-layer-Dockerfile .
-          docker run --rm -it -v $(pwd):/data python-opencv-layer cp /packages/cv2-python38.zip /data
-          
-          aws s3 cv2-python37.zip s3://${{ env.STACK_BUCKET }}/lambda/
-
+          docker build -t $LAMBDA_OPENCV_LAYER_NAME -f opencv-layer-Dockerfile .
+          docker run --rm -it -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
+         
+          # Copy layer to S3 bucket & publish to lambda
+          aws s3 cp cv2-python38.zip s3://${{ env.STACK_BUCKET }}/lambda/
+          aws lambda publish-layer-version --layer-name $LAMBDA_OPENCV_LAYER_NAME --description "Python Open-CV layer" --content S3Bucket=${{ env.STACK_BUCKET }},S3Key=cv2-python38.zip --compatible-runtimes python3.8
 
       - name: Deploy Security System stack
         run: |
-                    sam deploy --region $REGION --s3-bucket $STACK_BUCKET
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET
+
+          
+          VIDEO_PROCESSER_FUNCTION_NAME=$(aws describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey=`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
+          # Attach opencv layer
+          LAYER_ARN=$(aws lambda list-layer-versions --layer-name $LAMBDA_OPENCV_LAYER_NAME | jq -r '.LayerVersions[0].LayerVersionArn')
+          aws lambda update-function-configuration --function-name $VIDEO_PROCESSER_FUNCTION_NAME --layers $LAYER_ARN
+
+
  
