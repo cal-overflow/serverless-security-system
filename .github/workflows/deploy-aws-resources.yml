@@ -31,9 +31,21 @@ jobs:
       - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
           sam deploy --region $REGION -t bucket.template.yml --stack-name ${{ env.BUCKET_STACK_NAME }}
+          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+        echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_OUTPUT
+
+
+      - name: Sync lambda layer to S3
+        run: |
+          LAYER_NAME='opencv-layer'
+          
+          cd lambda && docker build -t opencv-layer -f opencv-layer-Dockerfile .
+          docker run --rm -it -v $(pwd):/data python-opencv-layer cp /packages/cv2-python38.zip /data
+          
+          aws s3 cv2-python37.zip s3://${{ env.STACK_BUCKET }}/lambda/
+
 
       - name: Deploy Security System stack
         run: |
-          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET
+                    sam deploy --region $REGION --s3-bucket $STACK_BUCKET
  
