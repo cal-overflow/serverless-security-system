@@ -40,11 +40,13 @@ jobs:
         run: |
           cd lambda
           
-          docker build -t $LAMBDA_OPENCV_LAYER_NAME -f opencv-layer-Dockerfile .
-          docker run --rm -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
+          # TODO - uncomment this
+          # docker build -t $LAMBDA_OPENCV_LAYER_NAME -f opencv-layer-Dockerfile .
+          # docker run --rm -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
+          touch cv2-python38.zip
          
           # Copy layer to S3 bucket & publish to lambda
-          aws s3 cp cv2-python38.zip s3://${{ env.STACK_BUCKET }}/lambda/
+          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/lambda/
           aws lambda publish-layer-version --layer-name $LAMBDA_OPENCV_LAYER_NAME --description "Python Open-CV layer" --content S3Bucket=${{ env.STACK_BUCKET }},S3Key=cv2-python38.zip --compatible-runtimes python3.8
 
       - name: Deploy Security System stack
