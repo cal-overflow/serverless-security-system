@@ -41,7 +41,7 @@ jobs:
           cd lambda
           
           docker build -t $LAMBDA_OPENCV_LAYER_NAME -f opencv-layer-Dockerfile .
-          docker run --rm -it -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
+          docker run --rm -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
          
           # Copy layer to S3 bucket & publish to lambda
           aws s3 cp cv2-python38.zip s3://${{ env.STACK_BUCKET }}/lambda/
