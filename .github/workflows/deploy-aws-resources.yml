@@ -16,6 +16,7 @@ env:
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
   LAMBDA_OPENCV_LAYER_NAME: python-opencv-layer
+  VIDEO_PROCESOR_LAMBDA_FN_S3_KEY: lambda/video-process.zip
 
 jobs:
    deploy:
@@ -48,12 +49,18 @@ jobs:
           aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/lambda/
           aws lambda publish-layer-version --layer-name $LAMBDA_OPENCV_LAYER_NAME --description "Python Open-CV layer" --content S3Bucket=$STACK_BUCKET,S3Key=lambda/cv2-python38.zip --compatible-runtimes python3.8
 
+      - name: Upload lambda function source code
+        run: |
+         cd lambda/process-videos
+         zip tmp.zip requirements.txt *.py
+         aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
+
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides 'VideoProcessFunctionS3Key="$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"'
 
           
-          VIDEO_PROCESSER_FUNCTION_NAME=$(aws describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey=`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
+          VIDEO_PROCESSER_FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey=`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
           # Attach opencv layer
           LAYER_ARN=$(aws lambda list-layer-versions --layer-name $LAMBDA_OPENCV_LAYER_NAME | jq -r '.LayerVersions[0].LayerVersionArn')
           aws lambda update-function-configuration --function-name $VIDEO_PROCESSER_FUNCTION_NAME --layers $LAYER_ARN

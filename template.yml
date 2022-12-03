@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: "AWS resources for a serverless security system"
 
+Parameters:
+  StackS3Bucket:
+    Type: String
+    Description: The name of the Stack S3 bucket (for storing lambda layer & source code)
+
 
 Resources:
   S3Bucket:
@@ -106,19 +111,24 @@ Resources:
   ProcessVideosLambdaFn:
     Type: AWS::Lambda::Function
     Properties:
+      Code:
+        S3Bucket: !Ref StackS3Bucket
+        S3Key: !Ref VideoProcessFunctionS3Key
+      Handler: app.handler
+      Runtime: python3.8
       Role: !GetAtt LambdaFnRole.Arn
       Environment:
         Variables:
           S3_BUCKET: !Ref S3Bucket
-      PackageType: Image
-      Code:
-        ImageUri: !Sub '${AWS::AccountId}.dkr.ecr.us-east-1.amazonaws.com/serverless-security-system-process-s3-videos-lambda-fn:latest'
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
-      TracingConfig:
-        Mode: Active
+      # TODO - configure higher timeout & POTENTIALLY better cpu/memory resources
 
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
-    Description: The name of the stacks S3 bucket.
+    Description: The name of the stacks S3 bucket where videos are stored.
+
+  VideoProcessorLambdaFunctionName:
+    Value: !Ref ProcessVideosLambdaFn
+    Description: The name of the Lambda Function that performs the video processing.
 
