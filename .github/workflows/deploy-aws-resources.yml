@@ -30,10 +30,10 @@ jobs:
       
       - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
-          same deploy --region $REGION --no-fail-on-empty-changeset -t bucket.template.yml --stack-name ${{ env.BUCKET_STACK_NAME }}
+          sam deploy --region $REGION -t bucket.template.yml --stack-name ${{ env.BUCKET_STACK_NAME }}
 
       - name: Deploy Security System stack
         run: |
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
-          sam deploy --region $REGION --no-fail-on-empty-changeset --s3-bucket $STACK_BUCKET
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET
  
