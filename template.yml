@@ -6,6 +6,9 @@ Parameters:
     Type: String
     Description: The name of the Stack S3 bucket (for storing lambda layer & source code)
 
+  VideoProcessFunctionS3Key:
+    Type: String
+    Description: The Object Key of the source code for the Video Process Function S3 key (within the given StackS3Bucket)
 
 Resources:
   S3Bucket:
