@@ -34,7 +34,6 @@ jobs:
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=${{ env.BUCKET_STACK_NAME }} --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_OUTPUT
 
-
       - name: Sync lambda layer to S3
         run: |
           LAYER_NAME='opencv-layer'
