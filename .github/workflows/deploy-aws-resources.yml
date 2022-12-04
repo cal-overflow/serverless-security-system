@@ -15,8 +15,8 @@ env:
   REGION: us-east-1
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
-  LAMBDA_OPENCV_LAYER_NAME: python-opencv-layer
   VIDEO_PROCESOR_LAMBDA_FN_S3_KEY: lambda/video-process.zip
+  OPEN_CV_LAMBDA_FN_S3_KEY: lambda/python-38-opencv-layer.zip
 
 jobs:
    deploy:
@@ -37,37 +37,25 @@ jobs:
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_ENV
 
-      # TODO - only perform this if the layer doesn't already exist 
-      - name: Create & Publish Lambda layer
+      - name: Upload Lambda layer & source code (to S3)
         run: |
-          cd lambda
+          # Upload lambda function code
+          cd lambda/process-videos
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
 
-          # TODO -remove this
-          # docker build -t $LAMBDA_OPENCV_LAYER_NAME -f opencv-layer-Dockerfile .
-          # docker run --rm -v $(pwd):/data $LAMBDA_OPENCV_LAYER_NAME cp /packages/cv2-python38.zip /data
-         
-          # Run pre-built docker container and copy its "lambda layer" zip file
+
+          # Upload lambda open-cv layer (zip)
+          # Run pre-built docker container to avoid need to run docker build
           docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
 
           # Copy layer to S3 bucket & publish to lambda
-          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/lambda/
-          aws lambda publish-layer-version --layer-name $LAMBDA_OPENCV_LAYER_NAME --description "Python Open-CV layer" --content S3Bucket=$STACK_BUCKET,S3Key=lambda/cv2-python38.zip --compatible-runtimes python3.8
-
-      - name: Upload lambda function source code
-        run: |
-         cd lambda/process-videos
-         zip tmp.zip requirements.txt *.py
-         aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
-
+          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAYER_S3_KEY
+          # echo "OPEN_CV_LAYER_S3_KEY=cv2-python38.zip" >> $GITHUB_ENV
+ 
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAYER_S3_KEY"
 
           
-          VIDEO_PROCESSER_FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
-          # Attach opencv layer
-          LAYER_ARN=$(aws lambda list-layer-versions --layer-name $LAMBDA_OPENCV_LAYER_NAME | jq -r '.LayerVersions[0].LayerVersionArn')
-          aws lambda update-function-configuration --function-name $VIDEO_PROCESSER_FUNCTION_NAME --layers $LAYER_ARN
-
-
  

@@ -10,6 +10,11 @@ Parameters:
     Type: String
     Description: The Object Key of the source code for the Video Process Function S3 key (within the given StackS3Bucket)
 
+  OpenCVLambdaLayerS3Key:
+    Type: String
+    Description: The Object Key of the Open-CV Lambda Layer (zip) S3 key (within the given StackS3Bucket)
+
+
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -111,6 +116,17 @@ Resources:
             Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl', 's3:DeleteObject' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
+  OpenCVLambdaLayer:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      LayerName: !Sub 'python-opencv-layer-${AWS::StackId}'
+      Description: Open-CV layer essential for running open-cv python in Lambda.
+      Content:
+        S3Bucket: !Ref StackS3Bucket
+        S3Key: !Ref OpenCVLambdaLayerS3Key
+      CompatibleRuntimes:
+        - python3.8
+
   ProcessVideosLambdaFn:
     Type: AWS::Lambda::Function
     Properties:
@@ -119,6 +135,8 @@ Resources:
         S3Key: !Ref VideoProcessFunctionS3Key
       Handler: app.handler
       Runtime: python3.8
+      Layers:
+        - !Ref OpenCVLambdaLayer
       Role: !GetAtt LambdaFnRole.Arn
       Environment:
         Variables:
@@ -126,11 +144,13 @@ Resources:
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
       # TODO - configure higher timeout & POTENTIALLY better cpu/memory resources
 
+
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
 
+  # TODO - potentially remove this (I don't think it's being used anywhere)
   VideoProcessorLambdaFunctionName:
     Value: !Ref ProcessVideosLambdaFn
     Description: The name of the Lambda Function that performs the video processing.
