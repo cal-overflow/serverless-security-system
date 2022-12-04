@@ -16,7 +16,7 @@ env:
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
   VIDEO_PROCESOR_LAMBDA_FN_S3_KEY: lambda/video-process.zip
-  OPEN_CV_LAMBDA_FN_S3_KEY: lambda/python-38-opencv-layer.zip
+  OPEN_CV_LAMBDA_LAYER_S3_KEY: lambda/python-38-opencv-layer.zip
 
 jobs:
    deploy:
@@ -39,23 +39,32 @@ jobs:
 
       - name: Upload Lambda layer & source code (to S3)
         run: |
-          # Upload lambda function code
+          if aws s3 ls s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY; then
+            echo "S3 bucket already contains $VIDEO_PROCESOR_LAMBDA_FN_S3_KEY, skipping upload"
+          else
+            echo "Uploading $OPEN_CV_LAYER_S3_KEY"
+            # Upload lambda open-cv layer (zip)
+            # Run pre-built docker container to avoid need to run docker build
+            docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
+
+            # Copy layer to S3 bucket & publish to lambda
+            aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
+          fi
+
+
           cd lambda/process-videos
-          zip tmp.zip requirements.txt *.py
-          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
-
-
-          # Upload lambda open-cv layer (zip)
-          # Run pre-built docker container to avoid need to run docker build
-          docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
-
-          # Copy layer to S3 bucket & publish to lambda
-          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_FN_S3_KEY
-          # echo "OPEN_CV_LAYER_S3_KEY=cv2-python38.zip" >> $GITHUB_ENV
+          if aws s3 ls s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY; then
+            echo "S3 bucket already contains $VIDEO_PROCESOR_LAMBDA_FN_S3_KEY, skipping upload"
+          else
+            echo "Uploading $VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"
+            # Only upload if it doesn't exist
+            zip tmp.zip requirements.txt *.py
+            aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
+          fi
  
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_FN_S3_KEY"
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_LAYER_S3_KEY"
 
           
  
