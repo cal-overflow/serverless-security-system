@@ -119,7 +119,6 @@ Resources:
   OpenCVLambdaLayer:
     Type: AWS::Lambda::LayerVersion
     Properties:
-      LayerName: !Sub 'python-opencv-layer-${AWS::StackId}'
       Description: Open-CV layer essential for running open-cv python in Lambda.
       Content:
         S3Bucket: !Ref StackS3Bucket
