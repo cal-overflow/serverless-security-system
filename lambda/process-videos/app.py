@@ -11,7 +11,8 @@ folder = f"{date}/"
 def handler(event, context):
     print('Inside the lambda!')
     # Make folder to download files locally
-    os.makedirs('/tmp/{folder}')
+    if not os.path.isdir(f'/tmp/{folder}'):
+        os.makedirs(f'/tmp/{folder}')
 
     s3_client = boto3.client("s3")
     # TODO - handle scenarios where there are > 1000 objects in bucket (this is unlikely since we're only getting the things in the "folder")
