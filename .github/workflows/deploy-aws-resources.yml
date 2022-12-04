@@ -57,7 +57,7 @@ jobs:
 
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides 'StackS3Bucket="\$STACK_BUCKET" VideoProcessFunctionS3Key="\$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"'
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides 'StackS3Bucket=\"$STACK_BUCKET\" VideoProcessFunctionS3Key=\"$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY\"'
 
           
           VIDEO_PROCESSER_FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey=`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
