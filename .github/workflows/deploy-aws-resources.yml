@@ -55,7 +55,7 @@ jobs:
  
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAYER_S3_KEY"
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET,VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY,OpenCVLambdaLayerS3Key=$OPEN_CV_LAYER_S3_KEY"
 
           
  
