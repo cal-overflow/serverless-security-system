@@ -64,7 +64,7 @@ jobs:
           sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"
 
           
-          VIDEO_PROCESSER_FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey=`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
+          VIDEO_PROCESSER_FUNCTION_NAME=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`VideoProcessorLambdaFunctionName`].OutputValue' --output text)
           # Attach opencv layer
           LAYER_ARN=$(aws lambda list-layer-versions --layer-name $LAMBDA_OPENCV_LAYER_NAME | jq -r '.LayerVersions[0].LayerVersionArn')
           aws lambda update-function-configuration --function-name $VIDEO_PROCESSER_FUNCTION_NAME --layers $LAYER_ARN
