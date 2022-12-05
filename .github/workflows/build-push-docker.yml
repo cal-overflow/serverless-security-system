@@ -30,6 +30,9 @@ jobs:
             const no_v = tag.replace('v', '')
             core.setOutput('no-v', no_v)
 
+      - name: Setup Docker build/push
+        uses: docker/setup-buildx-action@v2
+
       - name: Build and push image
         uses: docker/build-push-action@v3
         with:
