@@ -144,7 +144,9 @@ Resources:
         Variables:
           S3_BUCKET: !Ref S3Bucket
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
-      # TODO - potentially configure better cpu/memory resources
+      MemorySize: 512
+      Timeout: 300 # 5 minutes
+      ReservedConcurrentExecutions: 10
 
   LambdaS3BucketEventPermission:
     Type: AWS::Lambda::Permission
