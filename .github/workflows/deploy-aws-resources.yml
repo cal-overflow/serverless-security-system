@@ -21,6 +21,9 @@ env:
 jobs:
    deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -33,6 +36,7 @@ jobs:
       
       - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
+          cd cloud
           sam deploy --region $REGION -t bucket.template.yml --stack-name $BUCKET_STACK_NAME
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_ENV
