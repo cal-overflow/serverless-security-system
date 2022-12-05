@@ -34,5 +34,6 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
+          context: .
           tags: 'caloverflow/security-system-client:latest,caloverflow/security-system-client:${{ steps.get_version.outputs.no-v }}'
 
