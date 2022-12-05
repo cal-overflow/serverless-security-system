@@ -12,10 +12,17 @@ permissions:
 
 env:
   REGION: us-east-1
+  STACK_NAME: security-system
+  BUCKET_STACK_NAME: security-system-stack-bucket
+  VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY: lambda/check-video-for-motion.zip
+  OPEN_CV_LAMBDA_LAYER_S3_KEY: lambda/python-38-opencv-layer.zip
 
 jobs:
    deploy:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -25,8 +32,29 @@ jobs:
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
-
-      - name: Deploy ${{ env.STACK_NAME }} stack
+      
+      - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
         run: |
-          sam deploy --region $REGION --no-fail-on-empty-changeset
+          sam deploy --region $REGION -t bucket.template.yml --stack-name $BUCKET_STACK_NAME
+          STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+          echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_ENV
+
+      - name: Upload Lambda layer (to S3)
+        run: |
+          # Upload lambda open-cv layer (zip)
+          # Run pre-built docker container to avoid need to run docker build
+          docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
+
+          # Copy layer to S3 bucket & publish to lambda
+          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
+
+      - name: Upload Lambda source code (to S3)
+        run: |
+          cd lambda/check-video-for-motion
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY
  
+      - name: Deploy Security System stack
+        run: |
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_LAYER_S3_KEY"
+
