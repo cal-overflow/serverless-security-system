@@ -190,7 +190,7 @@ Resources:
     Properties:
       Description: Attach S3 event (notification) as lambda function trigger.
       Handler: index.handler
-      Runtime: python2.7
+      Runtime: python3.9
       Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
       Timeout: 240
       Code:
