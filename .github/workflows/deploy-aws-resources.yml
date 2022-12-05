@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - lambda-file-processing # TODO - remove this trigger
   workflow_dispatch:
 
 permissions:
