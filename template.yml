@@ -18,6 +18,11 @@ Parameters:
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt ProocessVideosLambdaFn.Arn
 
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -141,7 +146,7 @@ Resources:
         Variables:
           S3_BUCKET: !Ref S3Bucket
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
-      # TODO - configure higher timeout & POTENTIALLY better cpu/memory resources
+      # TODO - potentially configure better cpu/memory resources
 
 
 Outputs:
