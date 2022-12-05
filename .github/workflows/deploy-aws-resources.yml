@@ -39,22 +39,17 @@ jobs:
 
       - name: Upload Lambda layer & source code (to S3)
         run: |
-          if aws s3 ls s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY; then
-            echo "S3 bucket already contains $VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY, skipping upload"
-            # else # TODO - remove the comment before this - This is just for troubleshooting
-            echo "Uploading $OPEN_CV_LAYER_S3_KEY"
-            # Upload lambda open-cv layer (zip)
-            # Run pre-built docker container to avoid need to run docker build
-            docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
+          echo "Uploading $OPEN_CV_LAYER_S3_KEY"
+          # Upload lambda open-cv layer (zip)
+          # Run pre-built docker container to avoid need to run docker build
+          docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
 
-            # Copy layer to S3 bucket & publish to lambda
-            aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
-          fi
+          # Copy layer to S3 bucket & publish to lambda
+          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
 
 
-          cd lambda/check-video-for-motion
           echo "Uploading $VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY"
-          # Only upload if it doesn't exist
+          cd lambda/check-video-for-motion
           zip tmp.zip requirements.txt *.py
           aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY
  
