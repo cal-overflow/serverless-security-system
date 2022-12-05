@@ -80,13 +80,8 @@ Resources:
 
   S3Bucket:
     Type: AWS::S3::Bucket
-    Properties:
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt ProcessVideosLambdaFn.Arn
 
-  S3BucketPolicy:
+  S3BucketPublicAccessPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref S3Bucket
@@ -119,6 +114,7 @@ Resources:
 
   LambdaFnPolicy:
     Type: AWS::IAM::ManagedPolicy
+    DependsOn: S3Bucket
     Properties:
       ManagedPolicyName: !Sub '${AWS::StackName}-ProcessVideosLambdaFn-ManagedPolicy'
       Description: !Sub 'Managed Policy for the Process-Videos Lambda function in ${AWS::StackName}'
@@ -134,6 +130,7 @@ Resources:
 
   ProcessVideosLambdaFn:
     Type: AWS::Lambda::Function
+    DependsOn: S3Bucket
     Properties:
       Code:
         S3Bucket: !Ref StackS3Bucket
@@ -157,6 +154,117 @@ Resources:
       FunctionName: !Ref ProcessVideosLambdaFn
       SourceArn: !GetAtt S3Bucket.Arn
       Principal: s3.amazonaws.com
+
+
+
+
+  # These resources are needed to add an event "notification" that triggers ProcessVideosLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
+  # From: https://aws.amazon.com/blogs/mt/resolving-circular-dependency-in-provisioning-of-amazon-s3-buckets-with-aws-lambda-event-notifications/
+  ApplyNotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: / # TODO - see if this is needed
+      Policies:
+        - PolicyName: S3BucketNotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowBucketNotification
+                Effect: Allow
+                Action: s3:PutBucketNotification
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3Bucket}'
+                  - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+  AttachLambdaS3NotificationTrigger:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Attach S3 event (notification) as lambda function trigger.
+      Handler: index.handler
+      Runtime: python2.7
+      Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
+      Timeout: 240
+      Code:
+        ZipFile: |
+          import boto3
+          import logging
+          import json
+          import cfnresponse
+
+          s3Client = boto3.client('s3')
+          logger = logging.getLogger()
+          logger.setLevel(logging.DEBUG)
+
+          def addBucketNotification(bucketName, notificationId, functionArn):
+            notificationResponse = s3Client.put_bucket_notification_configuration(
+              Bucket=bucketName,
+              NotificationConfiguration={
+                'LambdaFunctionConfigurations': [
+                  {
+                    'Id': notificationId,
+                    'LambdaFunctionArn': functionArn,
+                    'Events': [
+                      's3:ObjectCreated:*'
+                    ]
+                  },
+                ]
+              }
+            )
+            return notificationResponse
+
+          def create(properties, physical_id):
+            bucketName = properties['S3Bucket']
+            notificationId = properties['NotificationId']
+            functionArn = properties['FunctionARN']
+            response = addBucketNotification(bucketName, notificationId, functionArn)
+            logger.info('AddBucketNotification response: %s' % json.dumps(response))
+            return cfnresponse.SUCCESS, physical_id
+
+          def update(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def delete(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def handler(event, context):
+            logger.info('Received event: %s' % json.dumps(event))
+
+            status = cfnresponse.FAILED
+            new_physical_id = None
+
+            try:
+              properties = event.get('ResourceProperties')
+              physical_id = event.get('PhysicalResourceId')
+
+              status, new_physical_id = {
+                'Create': create,
+                'Update': update,
+                'Delete': delete
+              }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
+            except Exception as e:
+              logger.error('Exception: %s' % e)
+              status = cfnresponse.FAILED
+            finally:
+              cfnresponse.send(event, context, status, {}, new_physical_id)
+
+  # This is what invoke's the AttachLambdaS3NotificationTrigger lambda function - attaching the s3 bucket event (notifications) as a trigger for the lambda function
+  InvokeAttackLambdaS3NotificationTriggerLambdaFunction:
+    Type: Custom::InvokeAttackLambdaS3NotificationTriggerLambdaFunction
+    Properties:
+      ServiceToken: !GetAtt AttachLambdaS3NotificationTrigger.Arn
+      S3Bucket: !Ref S3Bucket
+      FunctionARN: !GetAtt ProcessVideosLambdaFn.Arn
+      NotificationId: S3ObjectCreatedEvent
+
 
 Outputs:
   S3BucketName:
