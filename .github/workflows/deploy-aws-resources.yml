@@ -15,7 +15,7 @@ env:
   REGION: us-east-1
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
-  VIDEO_PROCESOR_LAMBDA_FN_S3_KEY: lambda/video-process.zip
+  VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY: lambda/check-video-for-motion.zip
   OPEN_CV_LAMBDA_LAYER_S3_KEY: lambda/python-38-opencv-layer.zip
 
 jobs:
@@ -40,7 +40,7 @@ jobs:
       - name: Upload Lambda layer & source code (to S3)
         run: |
           if aws s3 ls s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY; then
-            echo "S3 bucket already contains $VIDEO_PROCESOR_LAMBDA_FN_S3_KEY, skipping upload"
+            echo "S3 bucket already contains $VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY, skipping upload"
             # else # TODO - remove the comment before this - This is just for troubleshooting
             echo "Uploading $OPEN_CV_LAYER_S3_KEY"
             # Upload lambda open-cv layer (zip)
@@ -52,15 +52,13 @@ jobs:
           fi
 
 
-          cd lambda/process-videos
-          echo "Uploading $VIDEO_PROCESOR_LAMBDA_FN_S3_KEY"
+          cd lambda/check-video-for-motion
+          echo "Uploading $VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY"
           # Only upload if it doesn't exist
           zip tmp.zip requirements.txt *.py
-          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY
  
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_PROCESOR_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_LAYER_S3_KEY"
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_LAYER_S3_KEY"
 
-          
- 
