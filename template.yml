@@ -257,8 +257,8 @@ Resources:
               cfnresponse.send(event, context, status, {}, new_physical_id)
 
   # This is what invoke's the AttachLambdaS3NotificationTrigger lambda function - attaching the s3 bucket event (notifications) as a trigger for the lambda function
-  InvokeAttackLambdaS3NotificationTriggerLambdaFunction:
-    Type: Custom::InvokeAttackLambdaS3NotificationTriggerLambdaFunction
+  InvokeS3EventLambdaTriggerFn:
+    Type: Custom::InvokeS3EventLambdaTriggerFn
     Properties:
       ServiceToken: !GetAtt AttachLambdaS3NotificationTrigger.Arn
       S3Bucket: !Ref S3Bucket
