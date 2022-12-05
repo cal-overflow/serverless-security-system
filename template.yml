@@ -22,7 +22,7 @@ Resources:
       NotificationConfiguration:
         LambdaConfigurations:
           - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt ProocessVideosLambdaFn.Arn
+            Function: !GetAtt ProcessVideosLambdaFn.Arn
 
   S3BucketPolicy:
     Type: AWS::S3::BucketPolicy
