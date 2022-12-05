@@ -11,4 +11,4 @@ RUN apt-get update -y && \
     apt-get install ffmpeg libsm6 libxext6 -y
 
 COPY . .
-ENTRYPOINT ["python", "src/main.py"]
+ENTRYPOINT ["python", "main.py"]
