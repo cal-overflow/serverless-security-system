@@ -16,29 +16,19 @@ Parameters:
 
 
 Resources:
-  S3Bucket:
-    Type: AWS::S3::Bucket
+  OpenCVLambdaLayer:
+    Type: AWS::Lambda::LayerVersion
     Properties:
-      NotificationConfiguration:
-        LambdaConfigurations:
-          - Event: 's3:ObjectCreated:*'
-            Function: !GetAtt ProcessVideosLambdaFn.Arn
+      Description: Open-CV layer essential for running open-cv python in Lambda.
+      Content:
+        S3Bucket: !Ref StackS3Bucket
+        S3Key: !Ref OpenCVLambdaLayerS3Key
+      CompatibleRuntimes:
+        - python3.8
 
-  S3BucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref S3Bucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Action: 's3:GetObject'
-            Effect: Allow
-            Principal: '*'
-            Resource: 
-              - !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
-  S3BucketAccessManagedPolicy:
+
+  S3BucketUploadOnlyAccessManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: 'Serverless-Security-System-S3-Write-Access-Policy'
@@ -47,10 +37,7 @@ Resources:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
-            Action: [ 's3:ListBucket' ]
-            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
-          - Effect: Allow
-            Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl' ]
+            Action: [ 's3:PutObject', 's3:PutObjectAcl' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
   IAMUser:
@@ -59,7 +46,7 @@ Resources:
       UserName: 'security-system-client'
       Path: '/apps/'
       ManagedPolicyArns: 
-        - !Ref S3BucketAccessManagedPolicy
+        - !Ref S3BucketUploadOnlyAccessManagedPolicy
       Tags: 
         - Key: 'Description'
           Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
@@ -89,6 +76,30 @@ Resources:
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
+
+
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      NotificationConfiguration:
+        LambdaConfigurations:
+          - Event: 's3:ObjectCreated:*'
+            Function: !GetAtt ProcessVideosLambdaFn.Arn
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Action: 's3:GetObject'
+            Effect: Allow
+            Principal: '*'
+            Resource: 
+              - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+ 
   LambdaFnRole:
     Type: AWS::IAM::Role
     Properties:
@@ -121,16 +132,6 @@ Resources:
             Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl', 's3:DeleteObject' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
-  OpenCVLambdaLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      Description: Open-CV layer essential for running open-cv python in Lambda.
-      Content:
-        S3Bucket: !Ref StackS3Bucket
-        S3Key: !Ref OpenCVLambdaLayerS3Key
-      CompatibleRuntimes:
-        - python3.8
-
   ProcessVideosLambdaFn:
     Type: AWS::Lambda::Function
     Properties:
@@ -148,6 +149,14 @@ Resources:
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
       # TODO - potentially configure better cpu/memory resources
 
+  LambdaS3BucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref ProcessVideosLambdaFn
+      SourceArn: !GetAtt S3Bucket.Arn
+      Principal: s3.amazonaws.com
 
 Outputs:
   S3BucketName:
