@@ -23,6 +23,7 @@ Parameters:
   MotionDetectionSensitivity:
     Type: String
     Description: Sensitivity of the motion detection performed on videos.
+    Default: Medium
     AllowedValues:
       - High # Very sensitive to movement
       - Medium
