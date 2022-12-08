@@ -71,7 +71,7 @@ Resources:
   IAMUser:
     Type: AWS::IAM::User
     Properties: 
-    UserName: !Sub 'security-system-client-${AWS::StackId}'
+      UserName: !Sub 'security-system-client-${AWS::StackId}'
       Path: '/apps/'
       ManagedPolicyArns: 
         - !Ref S3BucketUploadOnlyAccessManagedPolicy
