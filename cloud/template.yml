@@ -230,6 +230,7 @@ Resources:
           UPLOAD_FOLDER: !FindInMap [ OptionsMap, S3Folders, 'Client' ]
       Code:
         ZipFile: |
+          import os
           import boto3
           import logging
           import json
