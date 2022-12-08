@@ -31,15 +31,16 @@ Parameters:
 
 
 Mappings:
-  S3Folders:
-    Client: 'client-uploads/'
-    Lambda: 'processed/'
+  OptionsMap:
+    S3Folders:
+      Client: 'client-uploads/'
+      Lambda: 'processed/'
 
-  # TODO - determine good values for these
-  MotionThreshold:
-    High: 10000
-    Medium: 15000
-    Low: 20000
+    # TODO - determine good values for these
+    MotionThreshold:
+      High: 10000
+      Medium: 15000
+      Low: 20000
 
 
 Resources:
@@ -170,9 +171,9 @@ Resources:
       Environment:
         Variables:
           S3_BUCKET: !Ref S3Bucket
-          PROCESSED_VIDEOS_FOLDER: !FindInMap [ S3Folders, 'Lambda' ]
+          PROCESSED_VIDEOS_FOLDER: !FindInMap [ OptionsMap, S3Folders, 'Lambda' ]
           IS_MOTION_OUTLINED: !Ref OutlineMotion
-          MOTION_THRESHOLD: !FindInMap [ MotionThreshold, !Ref MotionDetectionSensitivity ]
+          MOTION_THRESHOLD: !FindInMap [ OptionsMap, MotionThreshold, !Ref MotionDetectionSensitivity ]
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
       MemorySize: 256
       Timeout: 300 # 5 minutes
@@ -226,7 +227,7 @@ Resources:
       Timeout: 240
       Environment:
         Variables:
-          UPLOAD_FOLDER: !FindInMap [ S3Folders, 'Client' ]
+          UPLOAD_FOLDER: !FindInMap [ OptionsMap, S3Folders, 'Client' ]
       Code:
         ZipFile: |
           import boto3
