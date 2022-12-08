@@ -254,7 +254,7 @@ Resources:
                     ],
                     'Filter': {
                         'Key': {
-                            'FilteredRules': [
+                            'FilterRules': [
                                 {
                                     'Name': 'prefix',
                                     'Value': unprocessed_video_folder_name,
