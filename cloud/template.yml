@@ -100,7 +100,7 @@ Resources:
   AccessKeySecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: 'secury-system-client-user-access-key-secret'
+      Name: !Sub 'secury-system-${AWS::StackName}-client-user-access-key-secret'
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
