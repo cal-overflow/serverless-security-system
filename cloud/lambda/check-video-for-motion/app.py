@@ -4,6 +4,7 @@ import time
 from Video import Video
 
 bucket_name = os.environ.get('S3_BUCKET')
+processed_video_output_folder = os.environ.get('PROCESSED_VIDEOS_FOLDER')
 
 
 def handler(event, context):
@@ -14,14 +15,31 @@ def handler(event, context):
     filename = object_key.split('/')[-1]
     local_file_path = f'/tmp/{filename}'
 
-    print(f'Downloading {object_key} to {local_file_path}')
     s3_client.download_file(bucket_name, object_key, local_file_path)
     
-    # Perform the video processing here so we can delete it and continue on to the next (minimize storage use)
     vid = Video(local_file_path)
     vid.check_for_motion()
 
     if not vid.contains_motion:
+        print(f'Video {object_key} does not contain motion')
         s3_client.delete_object(Bucket=bucket_name, Key=object_key)
-        print('Deleted video from S3 bucket')
+        print(f'Deleted video {object_key}')
+    else:
+        new_object_key = os.path.relpath(f'{processed_video_output_folder}/{filename}')
+        s3_client.upload_file(vid.processed_file, bucket_name, new_object_key, ExtraArgs={'ContentType': "video/mp4"})
+        print(f'Saved video {new_object_key}')
+
+        s3_client.delete_object(Bucket=bucket_name, Key=object_key)
+        print(f'Deleted video {object_key}')
+
+
+    # Remove local files (otherwise lambda runner may run out of storage)
+    try:
+        os.remove(local_file_path)
+    except:
+        pass
+    try:
+        os.remove(vid.processed_file)
+    except:
+        pass
 

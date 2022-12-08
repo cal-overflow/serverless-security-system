@@ -14,6 +14,32 @@ Parameters:
     Type: String
     Description: The Object Key of the Open-CV Lambda Layer (zip) S3 key (within the given StackS3Bucket)
 
+  # Optional parameters
+  OutlineMotion:
+    Type: String
+    Default: False
+    Description: Whether or not detected motion should be outlined in videos.
+
+  MotionDetectionSensitivity:
+    Type: String
+    Description: Sensitivity of the motion detection performed on videos.
+    AllowedValues:
+      - High # Very sensitive to movement
+      - Medium
+      - Low
+
+
+Mappings:
+  S3Folders:
+    Client: 'client-uploads/'
+    Lambda: 'processed/'
+
+  # TODO - determine good values for these
+  MotionThreshold:
+    High: 10000
+    Medium: 15000
+    Low: 20000
+
 
 Resources:
   OpenCVLambdaLayer:
@@ -143,8 +169,11 @@ Resources:
       Environment:
         Variables:
           S3_BUCKET: !Ref S3Bucket
+          PROCESSED_VIDEOS_FOLDER: !FindInMap [ S3Folders, 'Lambda' ]
+          IS_MOTION_OUTLINED: !Ref OutlineMotion
+          MOTION_THRESHOLD: !FindInMap [ MotionThreshold, !Ref MotionDetectionSensitivity ]
       Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
-      MemorySize: 512
+      MemorySize: 256
       Timeout: 300 # 5 minutes
 
   LambdaS3BucketEventPermission:
@@ -194,6 +223,9 @@ Resources:
       Runtime: python3.9
       Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
       Timeout: 240
+      Environment:
+        Variables:
+          UPLOAD_FOLDER: !FindInMap [ S3Folders, 'Client' ]
       Code:
         ZipFile: |
           import boto3
@@ -204,6 +236,7 @@ Resources:
           s3Client = boto3.client('s3')
           logger = logging.getLogger()
           logger.setLevel(logging.DEBUG)
+          unprocessed_video_folder_name = os.environ.get('UPLOAD_FOLDER')
 
           def addBucketNotification(bucketName, notificationId, functionArn):
             notificationResponse = s3Client.put_bucket_notification_configuration(
@@ -215,7 +248,17 @@ Resources:
                     'LambdaFunctionArn': functionArn,
                     'Events': [
                       's3:ObjectCreated:*'
-                    ]
+                    ],
+                    'Filter': {
+                        'Key': {
+                            'FilteredRules': [
+                                {
+                                    'Name': 'prefix',
+                                    'Value': unprocessed_video_folder_name,
+                                }
+                            ]
+                        }
+                    }
                   },
                 ]
               }
