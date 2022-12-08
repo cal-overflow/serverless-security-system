@@ -1,7 +1,7 @@
 version = 0.1
 
 [default.global.parameters]
-stack_name = 'security-system-2' # TODO - remove version suffix
+stack_name = 'security-system-3' # TODO - remove version suffix
 
 [default.deploy.parameters]
 confirm_changeset = false
