@@ -1,8 +1,9 @@
 import cv2 as cv
 import uuid
+import os
 
 IS_MOTION_OUTLINED = os.environ.get('IS_MOTION_OUTLINED')
-MOTION_THRESHOLD = os.environ.get('MOTION_THRESHOLD')
+MOTION_THRESHOLD = int(os.environ.get('MOTION_THRESHOLD'))
 
 
 def get_contours_between_frames(frame1, frame2):
@@ -35,10 +36,9 @@ class Video:
         FPS = cap.get(cv.CAP_PROP_FPS)
         
         # TODO - change this to avc1 encoding
-        fourcc = cv.VideoWriter(*'mp4v')
+        fourcc = cv.VideoWriter_fourcc(*'mp4v')
         self.processed_file = f'/tmp/{str(uuid.uuid4())}.mp4'
         video_writer = cv.VideoWriter(self.processed_file, fourcc, FPS, (width, height))
-        video_writer = self.create_processed_file_video_writer(cap)
 
         _, frame1 = cap.read()
         _, frame2 = cap.read()
