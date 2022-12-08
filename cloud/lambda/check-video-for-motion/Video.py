@@ -2,7 +2,7 @@ import cv2 as cv
 import uuid
 import os
 
-IS_MOTION_OUTLINED = os.environ.get('IS_MOTION_OUTLINED')
+IS_MOTION_OUTLINED = os.environ.get('IS_MOTION_OUTLINED') == 'true'
 MOTION_THRESHOLD = int(os.environ.get('MOTION_THRESHOLD'))
 
 

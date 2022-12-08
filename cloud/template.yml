@@ -17,7 +17,7 @@ Parameters:
   # Optional parameters
   OutlineMotion:
     Type: String
-    Default: False
+    Default: true
     Description: Whether or not detected motion should be outlined in videos.
 
   MotionDetectionSensitivity:
