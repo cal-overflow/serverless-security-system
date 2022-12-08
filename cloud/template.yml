@@ -59,7 +59,7 @@ Resources:
   S3BucketUploadOnlyAccessManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
-      ManagedPolicyName: 'Serverless-Security-System-S3-Write-Access-Policy'
+      ManagedPolicyName: !Sub 'Serverless-Security-System-S3-Write-Access-Policy-${AWS::StackId}'
       Description: 'Managed policy that allows write access to the S3 bucket used for the Serverless-Security-System'
       PolicyDocument:
         Version: '2012-10-17'
@@ -71,7 +71,7 @@ Resources:
   IAMUser:
     Type: AWS::IAM::User
     Properties: 
-      UserName: 'security-system-client'
+    UserName: !Sub 'security-system-client-${AWS::StackId}'
       Path: '/apps/'
       ManagedPolicyArns: 
         - !Ref S3BucketUploadOnlyAccessManagedPolicy
@@ -82,7 +82,7 @@ Resources:
   IAMPermissionsBoundary:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: 'IAM-S3-Only-PermissionsBoundary'
+      PolicyName: !Sub 'IAM-S3-Only-PermissionsBoundary-${AWS::StackId}'
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
