@@ -12,8 +12,8 @@ def handler(event, context):
     
     object_to_process = event['Records'][0]['s3']['object']
     object_key = object_to_process['key']
-    date, clip_start_time, camera_name = object_key.strip('.mp4').split('_')
     filename = object_key.split('/')[-1]
+    date, clip_start_time, camera_name = filename.strip('.mp4').split('_')
     local_file_path = f'/tmp/{filename}'
 
     s3_client.download_file(bucket_name, object_key, local_file_path)
@@ -26,9 +26,10 @@ def handler(event, context):
         s3_client.delete_object(Bucket=bucket_name, Key=object_key)
         print(f'Deleted video {object_key}')
     else:
-        year, month, day = object_key.split('/')[1].split('-')
+        year, month, day = date.split('-')
         new_object_key = os.path.relpath(f'{processed_video_output_folder}/{year}/{month}/{day}/{clip_start_time}-{camera_name}.mp4')
         s3_client.upload_file(vid.processed_file, bucket_name, new_object_key, ExtraArgs={'ContentType': "video/mp4"})
+        print(f'Video {object_key} contains motion')
         print(f'Saved video {new_object_key}')
 
         s3_client.delete_object(Bucket=bucket_name, Key=object_key)
