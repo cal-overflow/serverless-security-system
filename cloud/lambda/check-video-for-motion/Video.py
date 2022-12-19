@@ -49,6 +49,7 @@ class Video:
             for contour in contours:
                if cv.contourArea(contour) >= MOTION_THRESHOLD:
                    self.contains_motion = True
+                   (x, y, w, h) = cv.boundingRect(contour)
                    cv.rectangle(frame1, (x, y), (x+w, y+h), (255, 255, 255), 1)
 
                    break
