@@ -21,6 +21,8 @@ class Camera:
 
     def calibrate_camera(self):
         '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
+
+        print('Calibrating camera...')
         self.camera = cv.VideoCapture(0)
 
         if not self.camera.isOpened():

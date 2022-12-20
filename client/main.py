@@ -15,6 +15,7 @@ camera_name = os.getenv('CAMERA_NAME', f'CAMERA_{uuid.uuid4().hex[:8]}')
 
 
 if __name__ == '__main__':
+    print(f'Output configuration:\nClips per upload: {clips_per_upload}\nClip length: {clip_length}s\nCamera name: {camera_name}')
     camera = Camera(camera_name, clip_length)
 
     video_writer = None
