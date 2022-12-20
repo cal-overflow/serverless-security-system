@@ -16,7 +16,7 @@ env:
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
   VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY: lambda/check-video-for-motion.zip
-  FFMPEG_LAMBDA_LAYER_S3_KEY: lambda/ffmpeg.tar.xz
+  FFMPEG_LAMBDA_LAYER_S3_KEY: lambda/ffmpeg.zip
   OPEN_CV_LAMBDA_LAYER_S3_KEY: lambda/python-38-opencv-layer.zip
 
 jobs:
@@ -45,11 +45,9 @@ jobs:
         run: |
           # Get the ffmpeg binaries
           wget -O ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
-          ls
-          tar xvf ffmpeg.tar.xz -C ffmpeg-binaries
-          ls
+          mkdir ffmpeg-binaries
+          tar xvf ffmpeg.tar.xz -C ffmpeg-binaries --strip-components 1
           zip -r ffmpeg.zip ffmpeg-binaries
-          ls
 
           # Get the lambda open-cv layer (zip)
           # Run pre-built docker container to avoid need to run docker build
