@@ -113,20 +113,6 @@ Resources:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
 
-  S3BucketPublicAccessPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref S3Bucket
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Sid: PublicReadForGetBucketObjects
-            Action: 's3:GetObject'
-            Effect: Allow
-            Principal: '*'
-            Resource: 
-              - !Sub 'arn:aws:s3:::${S3Bucket}/*'
- 
   LambdaFnRole:
     Type: AWS::IAM::Role
     Properties:
