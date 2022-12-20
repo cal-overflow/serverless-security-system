@@ -21,6 +21,8 @@ class Camera:
 
     def calibrate_camera(self):
         '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
+
+        print('Calibrating camera...')
         self.camera = cv.VideoCapture(0)
 
         if not self.camera.isOpened():
@@ -50,10 +52,7 @@ class Camera:
             self.calibrate_camera()
 
         start_time = time.time()
-        folder = f"{output_path}/{time.strftime('%Y-%m-%d', time.localtime(start_time))}"
-        create_folder(folder)
-
-        filename = f"{folder}/{time.strftime('%H-%M-%S', time.localtime(start_time))}_{self.name}.mp4"
+        filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{self.name}.mp4"
         print('Recording clip')
        
         # Figure out if this video encoding is sufficient (I want it to work on all devices without issues)

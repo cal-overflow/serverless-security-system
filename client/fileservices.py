@@ -32,7 +32,7 @@ def upload_files(folder):
         if os.path.isfile(item_full_path):
             upload_filename = item_full_path.lstrip(output_path)
             print(f'Uploading clip')
-            s3.upload_file(item_full_path, S3_BUCKET, upload_filename, ExtraArgs={'ContentType': "video/mp4"})
+            s3.upload_file(item_full_path, S3_BUCKET, f'client-uploads/{upload_filename}', ExtraArgs={'ContentType': "video/mp4"})
 
             # Delete the file locally
             os.remove(item_full_path)
