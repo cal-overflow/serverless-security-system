@@ -45,13 +45,18 @@ jobs:
         run: |
           # Get the ffmpeg binaries
           wget -O ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
+          ls
+          tar xvf ffmpeg.tar.xz -C ffmpeg-binaries
+          ls
+          zip -r ffmpeg.zip ffmpeg-binaries
+          ls
 
           # Get the lambda open-cv layer (zip)
           # Run pre-built docker container to avoid need to run docker build
           docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
 
           # Copy layers to S3 bucket
-          aws s3 cp ffmpeg.tar.xz s3://$STACK_BUCKET/$FFMPEG_LAMBDA_LAYER_S3_KEY
+          aws s3 cp ffmpeg.zip s3://$STACK_BUCKET/$FFMPEG_LAMBDA_LAYER_S3_KEY
           aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
 
       - name: Upload Lambda source code (to S3)
