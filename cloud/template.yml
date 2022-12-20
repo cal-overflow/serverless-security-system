@@ -74,7 +74,7 @@ Resources:
   IAMUser:
     Type: AWS::IAM::User
     Properties: 
-      UserName: !Sub 'security-system-client-${AWS::StackName}'
+      UserName: !Sub '${AWS::StackName}-client-user'
       Path: '/apps/'
       ManagedPolicyArns: 
         - !Ref S3BucketUploadOnlyAccessManagedPolicy
@@ -103,7 +103,7 @@ Resources:
   AccessKeySecret:
     Type: AWS::SecretsManager::Secret
     Properties:
-      Name: !Sub 'secury-system-${AWS::StackName}-client-user-access-key-secret'
+      Name: !Sub '${AWS::StackName}-client-user-access-key-secret'
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
@@ -111,6 +111,7 @@ Resources:
 
   S3Bucket:
     Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
 
   S3BucketPublicAccessPolicy:
     Type: AWS::S3::BucketPolicy
