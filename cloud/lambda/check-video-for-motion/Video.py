@@ -35,8 +35,7 @@ class Video:
         height = int(cap.get(4))
         FPS = cap.get(cv.CAP_PROP_FPS)
         
-        # TODO - change this to avc1 encoding
-        fourcc = cv.VideoWriter_fourcc(*'mp4v')
+        fourcc = cv.VideoWriter_fourcc(*'avc1')
         self.processed_file = f'/tmp/{str(uuid.uuid4())}.mp4'
         video_writer = cv.VideoWriter(self.processed_file, fourcc, FPS, (width, height))
 
