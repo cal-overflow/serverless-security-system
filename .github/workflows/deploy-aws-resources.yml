@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - lambda-use-universal-encoding # TODO - remove
   workflow_dispatch:
 
 permissions:
