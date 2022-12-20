@@ -10,6 +10,10 @@ Parameters:
     Type: String
     Description: The Object Key of the source code for the Video Process Function S3 key (within the given StackS3Bucket)
 
+  FfmpegLambdaLayerS3Key:
+    Type: String
+    Description: The Object Key of the ffmpeg Lambda Layer S3 key (within the given StackS3Bucket)
+
   OpenCVLambdaLayerS3Key:
     Type: String
     Description: The Object Key of the Open-CV Lambda Layer (zip) S3 key (within the given StackS3Bucket)
