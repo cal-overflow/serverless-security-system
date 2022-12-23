@@ -1,9 +1,11 @@
 import cv2 as cv
 import time
 import os
+import logging
 from dotenv import load_dotenv
 import uuid
 from fileservices import create_folder
+
 
 load_dotenv()
 output_path = os.getenv('OUTPUT_PATH', './tmp')
@@ -39,14 +41,14 @@ class Camera:
     def calibrate(self):
         '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
 
-        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Calibrating camera...')
+        logging.info('Calibrating camera...')
         self.camera = cv.VideoCapture(0)
 
         if not self.camera.isOpened():
             # Attempt to open capture device once more, after a failure
             self.camera.open()
             if not self.camera.isOpened():
-                print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Unable to open camera')
+                logging.error('Unable to open camera')
                 exit(1)
 
         start_time = time.time()
@@ -64,7 +66,7 @@ class Camera:
         self.fps = int(count / 10)
         self.camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc(*'MJPG')) # this fourcc allows for faster processing - https://stackoverflow.com/a/74234176
 
-        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Camera calibration complete - {self.width}x{self.height} at {self.fps} fps')
+        logging.info(f'Camera calibration complete - {self.width}x{self.height} at {self.fps} fps')
         return
 
 

@@ -4,10 +4,18 @@ import time
 import threading
 from fileservices import create_folder, upload_files, get_and_parse_settings_file
 from Camera import Camera
+import logging
 
 
 load_dotenv()
 output_path = os.getenv('OUTPUT_PATH', './tmp')
+
+logging.basicConfig(
+    format='[%(asctime)s] %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
 
 
 
@@ -18,7 +26,7 @@ def sync_configuration():
     global time_since_last_config_sync
     time_since_last_config_sync = time.time()
 
-    print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Configuration synced')
+    logging.info('Configuration synced')
 
 
 if __name__ == '__main__':
@@ -33,7 +41,7 @@ if __name__ == '__main__':
         clips_since_last_upload = 0
         uploading_thread = None
 
-        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Beginning footage capture')
+        logging.info('Beginning footage capture')
         while True:
             if time_since_last_config_sync < time.time() - 3600:
                 settings_sync_thread = threading.Thread(target=sync_configuration, name="SettingsSyncer", args=())
@@ -52,6 +60,6 @@ if __name__ == '__main__':
                 clips_since_last_upload = 0
             
     except Exception as e:
-        print(f'An error occurred: {e}')
+        logging.error(f'An error occurred: {e}')
     camera.release()
 
