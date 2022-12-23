@@ -29,9 +29,7 @@ def get_contours_between_frames(frame1, frame2):
 
 
 class Camera:
-    def __init__(self, camera_name, clip_length):
-        self.name = camera_name
-        self.clip_length = clip_length
+    def __init__(self):
         self.camera = None
         self.width = WIDTH
         self.height = HEIGHT
@@ -70,13 +68,13 @@ class Camera:
         return
 
 
-    def record_clip(self, outline_motion=False):
+    def record_clip(self, clip_length, is_motion_outlined):
         '''Record a video clip. Will calibrate the camera if it has not already been calibrated.'''
         if self.camera is None:
             self.calibrate_camera()
 
         start_time = time.time()
-        filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{self.name}.mp4"
+        filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
         print('Recording clip')
        
         fourcc = cv.VideoWriter_fourcc(*'avc1')
@@ -86,9 +84,9 @@ class Camera:
         prev_frame = None
         contains_motion = False
 
-        for i in range(self.fps * self.clip_length):
+        for i in range(self.fps * clip_length):
             _, frame = self.camera.read() # read frame from camera
-            prev_frame = frame.copy() # Copy the previous frame before the timestamp or motion-outline boxes are drawn
+            frame_copy = frame.copy() # Copy the previous frame before the timestamp or motion-outline boxes are drawn
 
             if prev_frame is not None:
                 contours = get_contours_between_frames(frame, prev_frame)
@@ -98,7 +96,7 @@ class Camera:
                        if not contains_motion:
                            print('Motion detected')
                            contains_motion = True
-                       if outline_motion:
+                       if is_motion_outlined:
                            (x, y, w, h) = cv.boundingRect(contour)
                            cv.rectangle(frame, (x, y), (x+w, y+h), (255, 255, 255), 1)
 
@@ -109,11 +107,17 @@ class Camera:
             # draw the text twice to give "outline" effect (ensure the text is visible regardless of frame)
             frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
             frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
-            video_writer.write(prev_frame) # TODO - change this back to `frame` - trying to see if prev_frame has timestamp
+            video_writer.write(frame)
+
+            prev_frame = frame_copy
 
             cv.waitKey(1)
 
         video_writer.release()
+
+        motion_flag = "CONTAINS-MOTION" if contains_motion else "NO-MOTION"
+        updated_filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{motion_flag}.mp4"
+        os.rename(filename, updated_filename)
 
 
 
