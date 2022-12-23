@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: security-system
+  STACK_NAME: security-system-test
   BUCKET_STACK_NAME: security-system-stack-bucket
 
 
@@ -41,5 +41,8 @@ jobs:
 
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET"
+          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET"
+          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+
+          aws s3 cp settings.json s3://$BUCKET/configuration/
 
