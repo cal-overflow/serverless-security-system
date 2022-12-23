@@ -26,7 +26,6 @@ def create_folder(path):
 
 def upload_files(folder):
     '''Recursively uploads files in the given folder to S3 bucket'''
-
     # TODO - implement error handling (i.e., network failures, etc.)
 
     for item in os.listdir(folder):
@@ -35,7 +34,6 @@ def upload_files(folder):
         if os.path.isdir(item_full_path):
             upload_files(item_full_path)
         if os.path.isfile(item_full_path):
-            print(f'Uploading clip {item_full_path}')
             date, start_time, motion_flag = item_full_path.lstrip(output_path)[:-4].split('_')
             year, month, day = date.split('-')
 
@@ -45,7 +43,6 @@ def upload_files(folder):
 
             s3.upload_file(item_full_path, S3_BUCKET, upload_key, ExtraArgs={'ContentType': "video/mp4"})
             
-            print(f'done uploading clip {upload_key}')
             # Delete the file locally
             os.remove(item_full_path)
 

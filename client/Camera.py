@@ -87,6 +87,8 @@ class Camera:
         for i in range(self.fps * clip_length):
             _, frame = self.camera.read() # read frame from camera
             frame_copy = frame.copy() # Copy the previous frame before the timestamp or motion-outline boxes are drawn
+            timestamp = time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))
+
 
             if prev_frame is not None:
                 contours = get_contours_between_frames(frame, prev_frame)
@@ -94,7 +96,7 @@ class Camera:
                 for contour in contours:
                    if cv.contourArea(contour) >= MOTION_THRESHOLD:
                        if not contains_motion:
-                           print('Motion detected')
+                           print(f'{timestamp} Motion detected') # TODO - probably remove this
                            contains_motion = True
                        if is_motion_outlined:
                            (x, y, w, h) = cv.boundingRect(contour)
@@ -102,9 +104,8 @@ class Camera:
 
                        break
 
-            timestamp = time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))
-
-            # draw the text twice to give "outline" effect (ensure the text is visible regardless of frame)
+            # Draw a timestamp on the frame
+            # draw twice to give "outline" effect (ensure the text is visible regardless of frame)
             frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 0), 4, cv.LINE_AA)
             frame = cv.putText(frame, timestamp, (50, 50), cv.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv.LINE_AA)
             video_writer.write(frame)
