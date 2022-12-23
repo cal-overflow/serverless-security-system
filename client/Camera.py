@@ -9,7 +9,7 @@ load_dotenv()
 output_path = os.getenv('OUTPUT_PATH', './tmp')
 WIDTH = int(os.getenv('WIDTH', '0'))
 HEIGHT = int(os.getenv('HEIGHT', '0'))
-MOTION_THRESHOLD = int(os.getenv('MOTION_THRESHOLD', 3500))
+MOTION_THRESHOLD = int(os.getenv('MOTION_THRESHOLD', 3000))
 
 
 def get_contours_between_frames(frame1, frame2):
