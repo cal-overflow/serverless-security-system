@@ -39,7 +39,7 @@ class Camera:
     def calibrate_camera(self):
         '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
 
-        print('Calibrating camera...')
+        print('Calibrating camera')
         self.camera = cv.VideoCapture(0)
 
         if not self.camera.isOpened():
@@ -52,6 +52,7 @@ class Camera:
         start_time = time.time()
         count = 0
         while int(time.time() - start_time) < 10:
+            print('.', end='')
             _, _ = self.camera.read()
             count += 1 # number of frames
 
@@ -64,7 +65,7 @@ class Camera:
         self.fps = int(count / 10)
         self.camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc(*'MJPG')) # this fourcc allows for faster processing - https://stackoverflow.com/a/74234176
 
-        print(f'Camera calibration complete.\nDimensions: {self.width}x{self.height}\nFPS: {self.fps}')
+        print(f'\nCamera calibration complete.\n---\nDimensions: {self.width}x{self.height}\nFPS: {self.fps}\n')
         return
 
 
@@ -75,7 +76,6 @@ class Camera:
 
         start_time = time.time()
         filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
-        print('Recording clip')
        
         fourcc = cv.VideoWriter_fourcc(*'avc1')
         video_writer = cv.VideoWriter(filename, fourcc, self.fps, (self.width, self.height))
@@ -96,7 +96,6 @@ class Camera:
                 for contour in contours:
                    if cv.contourArea(contour) >= MOTION_THRESHOLD:
                        if not contains_motion:
-                           print(f'{timestamp} Motion detected') # TODO - probably remove this
                            contains_motion = True
                        if is_motion_outlined:
                            (x, y, w, h) = cv.boundingRect(contour)
