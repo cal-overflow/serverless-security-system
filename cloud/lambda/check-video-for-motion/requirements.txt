@@ -1,4 +1,0 @@
-opencv-python
-boto3
-numpy
-

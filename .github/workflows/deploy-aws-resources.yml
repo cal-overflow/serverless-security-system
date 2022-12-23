@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      - lambda-use-universal-encoding # TODO - remove
+      - move-video-processing-to-client # TODO - remove
   workflow_dispatch:
 
 permissions:
@@ -15,9 +15,7 @@ env:
   REGION: us-east-1
   STACK_NAME: security-system
   BUCKET_STACK_NAME: security-system-stack-bucket
-  VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY: lambda/check-video-for-motion.zip
-  FFMPEG_LAMBDA_LAYER_S3_KEY: lambda/ffmpeg.zip
-  OPEN_CV_LAMBDA_LAYER_S3_KEY: lambda/python-38-opencv-layer.zip
+
 
 jobs:
    deploy:
@@ -35,35 +33,13 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
       
-      - name: Deploy basic S3 bucket stack (for advanced things like lambda layer)
+      - name: Deploy basic S3 bucket stack
         run: |
           sam deploy --region $REGION -t bucket.template.yml --stack-name $BUCKET_STACK_NAME
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_ENV
 
-      - name: Upload Lambda layers (to S3)
-        run: |
-          # Get the ffmpeg binaries
-          wget -O ffmpeg.tar.xz https://johnvansickle.com/ffmpeg/builds/ffmpeg-git-amd64-static.tar.xz
-          mkdir ffmpeg-binaries
-          tar xvf ffmpeg.tar.xz -C ffmpeg-binaries --strip-components 1
-          zip -r ffmpeg.zip ffmpeg-binaries
-
-          # Get the lambda open-cv layer (zip)
-          # Run pre-built docker container to avoid need to run docker build
-          docker run --rm -v $(pwd):/data caloverflow/python3.8-opencv-aws-lambda-layer cp /packages/cv2-python38.zip /data
-
-          # Copy layers to S3 bucket
-          aws s3 cp ffmpeg.zip s3://$STACK_BUCKET/$FFMPEG_LAMBDA_LAYER_S3_KEY
-          aws s3 cp cv2-python38.zip s3://$STACK_BUCKET/$OPEN_CV_LAMBDA_LAYER_S3_KEY
-
-      - name: Upload Lambda source code (to S3)
-        run: |
-          cd lambda/check-video-for-motion
-          zip tmp.zip requirements.txt *.py
-          aws s3 cp tmp.zip s3://$STACK_BUCKET/$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY
- 
       - name: Deploy Security System stack
         run: |
-          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "VideoProcessFunctionS3Key=$VIDEO_MOTION_CHECKER_LAMBDA_FN_S3_KEY" "FfmpegLambdaLayerS3Key=$FFMPEG_LAMBDA_LAYER_S3_KEY" "OpenCVLambdaLayerS3Key=$OPEN_CV_LAMBDA_LAYER_S3_KEY"
+          sam deploy --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET"
 
