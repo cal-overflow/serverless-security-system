@@ -1,38 +1,58 @@
 import os
 from dotenv import load_dotenv
-import uuid
+import time
 import threading
-from fileservices import create_folder, upload_files
+from fileservices import create_folder, upload_files, get_and_parse_settings_file
 from Camera import Camera
+import logging
 
 
 load_dotenv()
-
 output_path = os.getenv('OUTPUT_PATH', './tmp')
-clips_per_upload = int(os.getenv('CLIPS_PER_UPLOAD', 50))
-clip_length = int(os.getenv('CLIP_LENGTH', 30))
-camera_name = os.getenv('CAMERA_NAME', f'CAMERA_{uuid.uuid4().hex[:8]}')
+
+logging.basicConfig(
+    format='[%(asctime)s] %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+
+
+
+def sync_configuration():
+    global settings
+    settings = get_and_parse_settings_file()
+
+    global time_since_last_config_sync
+    time_since_last_config_sync = time.time()
+
+    logging.info('Configuration synced')
 
 
 if __name__ == '__main__':
-    print(f'Output configuration:\nClips per upload: {clips_per_upload}\nClip length: {clip_length}s\nCamera name: {camera_name}')
-    camera = Camera(camera_name, clip_length)
+    sync_configuration()
 
-    video_writer = None
+    camera = Camera()
+    camera.calibrate()
 
     create_folder(output_path) 
 
     try:
         clips_since_last_upload = 0
         uploading_thread = None
+
+        logging.info('Beginning footage capture')
         while True:
-            camera.record_clip()
+            if time_since_last_config_sync < time.time() - 3600:
+                settings_sync_thread = threading.Thread(target=sync_configuration, name="SettingsSyncer", args=())
+                settings_sync_thread.start()
+
+            camera.record_clip(settings['clip_length'], settings['is_motion_outlined'])
             clips_since_last_upload += 1
             
-            if clips_since_last_upload >= clips_per_upload:
+            if clips_since_last_upload >= settings['clips_per_upload']:
                 if uploading_thread is not None:
                     if uploading_thread.is_alive():
-                        print('Thread still running in background')
                         continue
                     
                 uploading_thread = threading.Thread(target=upload_files, name="FileUploader", args=(output_path,))
@@ -40,8 +60,6 @@ if __name__ == '__main__':
                 clips_since_last_upload = 0
             
     except Exception as e:
-        print(f'An error occurred: {e}')
-        if video_writer is not None:
-            video_writer.release()
+        logging.error(f'An error occurred: {e}')
     camera.release()
 

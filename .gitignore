@@ -3,3 +3,8 @@
 tmp
 venv
 *__pycache__
+
+
+# Client specific files
+client/settings.json
+

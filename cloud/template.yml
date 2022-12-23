@@ -2,63 +2,13 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: "AWS resources for a serverless security system"
 
 Parameters:
+  # TODO - remove this (and the stack for the bucket) if this doesn't end up being used
   StackS3Bucket:
     Type: String
-    Description: The name of the Stack S3 bucket (for storing lambda layer & source code)
-
-  VideoProcessFunctionS3Key:
-    Type: String
-    Description: The Object Key of the source code for the Video Process Function S3 key (within the given StackS3Bucket)
-
-  OpenCVLambdaLayerS3Key:
-    Type: String
-    Description: The Object Key of the Open-CV Lambda Layer (zip) S3 key (within the given StackS3Bucket)
-
-  # Optional parameters
-  OutlineMotion:
-    Type: String
-    Description: Whether or not detected motion should be outlined in videos.
-    Default: true
-    AllowedValues:
-      - true
-      - false
-
-  MotionDetectionSensitivity:
-    Type: String
-    Description: Sensitivity of the motion detection performed on videos.
-    Default: Medium
-    AllowedValues:
-      - High # Very sensitive to movement
-      - Medium
-      - Low
-
-
-Mappings:
-  OptionsMap:
-    S3Folders:
-      Client: 'client-uploads/'
-      Lambda: 'processed/'
-
-    # TODO - determine good values for these
-    MotionThreshold:
-      High: 10000
-      Medium: 15000
-      Low: 20000
+    Description: The name of the Stack S3 bucket (for storing lambda source code)
 
 
 Resources:
-  OpenCVLambdaLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      Description: Open-CV layer essential for running open-cv python in Lambda.
-      Content:
-        S3Bucket: !Ref StackS3Bucket
-        S3Key: !Ref OpenCVLambdaLayerS3Key
-      CompatibleRuntimes:
-        - python3.8
-
-
-
   S3BucketUploadOnlyAccessManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -80,7 +30,7 @@ Resources:
         - !Ref S3BucketUploadOnlyAccessManagedPolicy
       Tags: 
         - Key: 'Description'
-          Value: 'IAM User for uploading files to S3 bucket for Serverless-Security-System.'
+          Value: 'IAM User for accessing S3 bucket for Serverless-Security-System.'
 
   IAMPermissionsBoundary:
     Type: AWS::IAM::Policy
@@ -107,209 +57,13 @@ Resources:
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
-
-
   S3Bucket:
     Type: AWS::S3::Bucket
     DeletionPolicy: Retain
-
-  LambdaFnRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Sub '${AWS::StackName}-LambdaFnRole'
-      Description: !Sub "Execution role for the Process-Videos Lambda function in ${AWS::StackName}"
-      ManagedPolicyArns:
-        - !Ref LambdaFnPolicy
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service: lambda.amazonaws.com
-          Action:
-            - 'sts:AssumeRole'
-
-  LambdaFnPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    DependsOn: S3Bucket
-    Properties:
-      ManagedPolicyName: !Sub '${AWS::StackName}-ProcessVideosLambdaFn-ManagedPolicy'
-      Description: !Sub 'Managed Policy for the Process-Videos Lambda function in ${AWS::StackName}'
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action: [ 's3:ListBucket' ]
-            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
-          - Effect: Allow
-            Action: [ 's3:GetObject', 's3:PutObject', 's3:PutObjectAcl', 's3:DeleteObject' ]
-            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
-
-  ProcessVideosLambdaFn:
-    Type: AWS::Lambda::Function
-    DependsOn: S3Bucket
-    Properties:
-      Code:
-        S3Bucket: !Ref StackS3Bucket
-        S3Key: !Ref VideoProcessFunctionS3Key
-      Handler: app.handler
-      Runtime: python3.8
-      Layers:
-        - !Ref OpenCVLambdaLayer
-      Role: !GetAtt LambdaFnRole.Arn
-      Environment:
-        Variables:
-          S3_BUCKET: !Ref S3Bucket
-          PROCESSED_VIDEOS_FOLDER: !FindInMap [ OptionsMap, S3Folders, 'Lambda' ]
-          IS_MOTION_OUTLINED: !Ref OutlineMotion
-          MOTION_THRESHOLD: !FindInMap [ OptionsMap, MotionThreshold, !Ref MotionDetectionSensitivity ]
-      Description: Lambda function that processes (keeps only significant) videos within the S3 bucket
-      MemorySize: 256
-      Timeout: 300 # 5 minutes
-
-  LambdaS3BucketEventPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:invokeFunction
-      SourceAccount: !Ref 'AWS::AccountId'
-      FunctionName: !Ref ProcessVideosLambdaFn
-      SourceArn: !GetAtt S3Bucket.Arn
-      Principal: s3.amazonaws.com
-
-
-
-
-  # These resources are needed to add an event "notification" that triggers ProcessVideosLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
-  # From: https://aws.amazon.com/blogs/mt/resolving-circular-dependency-in-provisioning-of-amazon-s3-buckets-with-aws-lambda-event-notifications/
-  ApplyNotificationFunctionRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: sts:AssumeRole
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Path: / # TODO - see if this is needed
-      Policies:
-        - PolicyName: S3BucketNotificationPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Sid: AllowBucketNotification
-                Effect: Allow
-                Action: s3:PutBucketNotification
-                Resource:
-                  - !Sub 'arn:aws:s3:::${S3Bucket}'
-                  - !Sub 'arn:aws:s3:::${S3Bucket}/*'
-
-  AttachLambdaS3NotificationTrigger:
-    Type: AWS::Lambda::Function
-    Properties:
-      Description: Attach S3 event (notification) as lambda function trigger.
-      Handler: index.handler
-      Runtime: python3.9
-      Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
-      Timeout: 240
-      Environment:
-        Variables:
-          UPLOAD_FOLDER: !FindInMap [ OptionsMap, S3Folders, 'Client' ]
-      Code:
-        ZipFile: |
-          import os
-          import boto3
-          import logging
-          import json
-          import cfnresponse
-
-          s3Client = boto3.client('s3')
-          logger = logging.getLogger()
-          logger.setLevel(logging.DEBUG)
-          unprocessed_video_folder_name = os.environ.get('UPLOAD_FOLDER')
-
-          def addBucketNotification(bucketName, notificationId, functionArn):
-            notificationResponse = s3Client.put_bucket_notification_configuration(
-              Bucket=bucketName,
-              NotificationConfiguration={
-                'LambdaFunctionConfigurations': [
-                  {
-                    'Id': notificationId,
-                    'LambdaFunctionArn': functionArn,
-                    'Events': [
-                      's3:ObjectCreated:*'
-                    ],
-                    'Filter': {
-                        'Key': {
-                            'FilterRules': [
-                                {
-                                    'Name': 'prefix',
-                                    'Value': unprocessed_video_folder_name,
-                                }
-                            ]
-                        }
-                    }
-                  },
-                ]
-              }
-            )
-            return notificationResponse
-
-          def create(properties, physical_id):
-            bucketName = properties['S3Bucket']
-            notificationId = properties['NotificationId']
-            functionArn = properties['FunctionARN']
-            response = addBucketNotification(bucketName, notificationId, functionArn)
-            logger.info('AddBucketNotification response: %s' % json.dumps(response))
-            return cfnresponse.SUCCESS, physical_id
-
-          def update(properties, physical_id):
-            return cfnresponse.SUCCESS, None
-
-          def delete(properties, physical_id):
-            return cfnresponse.SUCCESS, None
-
-          def handler(event, context):
-            logger.info('Received event: %s' % json.dumps(event))
-
-            status = cfnresponse.FAILED
-            new_physical_id = None
-
-            try:
-              properties = event.get('ResourceProperties')
-              physical_id = event.get('PhysicalResourceId')
-
-              status, new_physical_id = {
-                'Create': create,
-                'Update': update,
-                'Delete': delete
-              }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
-            except Exception as e:
-              logger.error('Exception: %s' % e)
-              status = cfnresponse.FAILED
-            finally:
-              cfnresponse.send(event, context, status, {}, new_physical_id)
-
-  # This is what invoke's the AttachLambdaS3NotificationTrigger lambda function - attaching the s3 bucket event (notifications) as a trigger for the lambda function
-  InvokeS3EventLambdaTriggerFn:
-    Type: Custom::InvokeS3EventLambdaTriggerFn
-    Properties:
-      ServiceToken: !GetAtt AttachLambdaS3NotificationTrigger.Arn
-      S3Bucket: !Ref S3Bucket
-      FunctionARN: !GetAtt ProcessVideosLambdaFn.Arn
-      NotificationId: S3ObjectCreatedEvent
 
 
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
-
-  # TODO - potentially remove this (I don't think it's being used anywhere)
-  VideoProcessorLambdaFunctionName:
-    Value: !Ref ProcessVideosLambdaFn
-    Description: The name of the Lambda Function that performs the video processing.
 

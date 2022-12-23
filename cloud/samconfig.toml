@@ -1,8 +1,5 @@
 version = 0.1
 
-[default.global.parameters]
-stack_name = 'security-system'
-
 [default.deploy.parameters]
 confirm_changeset = false
 fail_on_empty_changeset = false
