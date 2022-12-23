@@ -30,7 +30,7 @@ Resources:
         - !Ref S3BucketUploadOnlyAccessManagedPolicy
       Tags: 
         - Key: 'Description'
-          Value: 'IAM User for uploading (and retrieving a few) files to/from S3 bucket for Serverless-Security-System.'
+          Value: 'IAM User for accessing S3 bucket for Serverless-Security-System.'
 
   IAMPermissionsBoundary:
     Type: AWS::IAM::Policy
