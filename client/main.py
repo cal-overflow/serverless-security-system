@@ -18,19 +18,22 @@ def sync_configuration():
     global time_since_last_config_sync
     time_since_last_config_sync = time.time()
 
-    print(f'---\nConfiguration synced:\nClips per upload: {settings["clips_per_upload"]}\nClip length: {settings["clip_length"]}s\nOutline motion: {settings["is_motion_outlined"]}\n---\n')
+    print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Configuration synced')
 
 
 if __name__ == '__main__':
     sync_configuration()
 
     camera = Camera()
+    camera.calibrate()
 
     create_folder(output_path) 
 
     try:
         clips_since_last_upload = 0
         uploading_thread = None
+
+        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Beginning footage capture')
         while True:
             if time_since_last_config_sync < time.time() - 3600:
                 settings_sync_thread = threading.Thread(target=sync_configuration, name="SettingsSyncer", args=())

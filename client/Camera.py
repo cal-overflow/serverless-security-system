@@ -36,23 +36,22 @@ class Camera:
         self.fps = None
 
 
-    def calibrate_camera(self):
+    def calibrate(self):
         '''Calibrate the camera. Get the true FPS (including processing) from the camera'''
 
-        print('Calibrating camera')
+        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Calibrating camera...')
         self.camera = cv.VideoCapture(0)
 
         if not self.camera.isOpened():
             # Attempt to open capture device once more, after a failure
             self.camera.open()
             if not self.camera.isOpened():
-                print('Unable to open camera')
+                print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Unable to open camera')
                 exit(1)
 
         start_time = time.time()
         count = 0
         while int(time.time() - start_time) < 10:
-            print('.', end='')
             _, _ = self.camera.read()
             count += 1 # number of frames
 
@@ -65,14 +64,14 @@ class Camera:
         self.fps = int(count / 10)
         self.camera.set(cv.CAP_PROP_FOURCC, cv.VideoWriter_fourcc(*'MJPG')) # this fourcc allows for faster processing - https://stackoverflow.com/a/74234176
 
-        print(f'\nCamera calibration complete.\n---\nDimensions: {self.width}x{self.height}\nFPS: {self.fps}\n')
+        print(f'[{time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))}] Camera calibration complete - {self.width}x{self.height} at {self.fps} fps')
         return
 
 
     def record_clip(self, clip_length, is_motion_outlined):
         '''Record a video clip. Will calibrate the camera if it has not already been calibrated.'''
         if self.camera is None:
-            self.calibrate_camera()
+            self.calibrate()
 
         start_time = time.time()
         filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
