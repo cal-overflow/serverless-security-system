@@ -25,8 +25,9 @@ if __name__ == '__main__':
     try:
         clips_since_last_upload = 0
         uploading_thread = None
+        is_outlining_motion = True # TODO - make this somethign that is periodically pulled from config file in s3
         while True:
-            camera.record_clip()
+            camera.record_clip(is_outlining_motion)
             clips_since_last_upload += 1
             
             if clips_since_last_upload >= clips_per_upload:
