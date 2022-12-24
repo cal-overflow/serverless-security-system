@@ -5,6 +5,9 @@ venv
 *__pycache__
 
 
-# Client specific files
+# Client-specific files
 client/settings.json
+
+# Cloud-specific files
+cloud/.aws-sam
 
