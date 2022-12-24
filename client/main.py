@@ -9,6 +9,7 @@ import logging
 
 load_dotenv()
 output_path = os.getenv('OUTPUT_PATH', './tmp')
+completed_video_output_path = f'{output_path}/completed'
 
 logging.basicConfig(
     format='[%(asctime)s] %(message)s',
@@ -35,7 +36,7 @@ if __name__ == '__main__':
     camera = Camera()
     camera.calibrate()
 
-    create_folder(output_path) 
+    create_folder(completed_video_output_path) 
 
     try:
         clips_since_last_upload = 0
@@ -55,7 +56,7 @@ if __name__ == '__main__':
                     if uploading_thread.is_alive():
                         continue
                     
-                uploading_thread = threading.Thread(target=upload_files, name="FileUploader", args=(output_path,))
+                uploading_thread = threading.Thread(target=upload_files, name="FileUploader", args=(completed_video_output_path,))
                 uploading_thread.start()
                 clips_since_last_upload = 0
             

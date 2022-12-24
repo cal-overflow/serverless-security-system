@@ -16,6 +16,7 @@ SETTINGS_FILE_KEY = "configuration/settings.json"
 s3 = session.client('s3')
 
 output_path = os.getenv('OUTPUT_PATH', './tmp')
+completed_video_output_path = f'{output_path}/completed'
 camera_name = os.getenv('CAMERA_NAME', f'CAMERA_{uuid.uuid4().hex[:8]}')
 
 
@@ -34,7 +35,7 @@ def upload_files(folder):
         if os.path.isdir(item_full_path):
             upload_files(item_full_path)
         if os.path.isfile(item_full_path):
-            date, start_time, motion_flag = item_full_path.lstrip(output_path)[:-4].split('_')
+            date, start_time, motion_flag = item_full_path.split(folder)[1][:-4].split('_')
             year, month, day = date.split('-')
 
             upload_object_folder = 'footage/activity' if motion_flag == "CONTAINS-MOTION" else 'footage/normal'

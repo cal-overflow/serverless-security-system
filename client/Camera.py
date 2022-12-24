@@ -76,10 +76,10 @@ class Camera:
             self.calibrate()
 
         start_time = time.time()
-        filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
+        temp_video_filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
        
         fourcc = cv.VideoWriter_fourcc(*'avc1')
-        video_writer = cv.VideoWriter(filename, fourcc, self.fps, (self.width, self.height))
+        video_writer = cv.VideoWriter(temp_video_filename, fourcc, self.fps, (self.width, self.height))
 
 
         prev_frame = None
@@ -117,8 +117,8 @@ class Camera:
         video_writer.release()
 
         motion_flag = "CONTAINS-MOTION" if contains_motion else "NO-MOTION"
-        updated_filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{motion_flag}.mp4"
-        os.rename(filename, updated_filename)
+        completed_video_filename = f"{output_path}/completed/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{motion_flag}.mp4"
+        os.rename(temp_video_filename, completed_video_filename)
 
 
 
