@@ -45,7 +45,7 @@ jobs:
         run: |
           cd lambda/attach_s3_event_lambda_trigger
           zip tmp.zip requirements.txt *.py 
-          aws s3 cp tmp.zip s3://$STACK_BUCKET/$ATTACH_S3_EVENT_LAMBDA_FN_S3_KEATTACH_S3_EVENT_LAMBDA_FN_S3_KEY
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$ATTACH_S3_EVENT_LAMBDA_FN_S3_KEY
           
       - name: Upload upload-handler lambda function source code (to S3)
         run: |
