@@ -51,7 +51,7 @@ jobs:
         run: |
           cd lambda/upload_handler
           zip tmp.zip requirements.txt *.py
-          aws s3 cp tmp.zip s3://$STACK_NAME/$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY
 
       - name: Deploy Security System stack
         run: |
