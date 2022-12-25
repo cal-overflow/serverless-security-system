@@ -1,0 +1,80 @@
+import os
+import boto3
+import logging
+import json
+import cfnresponse
+
+s3Client = boto3.client('s3')
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+VIDEO_UPLOAD_FOLDER_NAME='footage/'
+
+def addBucketNotificationTrigger(bucketName, notificationId, functionArn):
+    '''When invoked, this function attaches the PutObject event trigger on the given bucket as a trigger for the given function.'''
+    notificationResponse = s3Client.put_bucket_notification_configuration(
+      Bucket=bucketName,
+      NotificationConfiguration={
+            'LambdaFunctionConfigurations': [
+                {
+                    'Id': notificationId,
+                    'LambdaFunctionArn': functionArn,
+                    'Events': [
+                        's3:ObjectCreated:*'
+                    ],
+                    'Filter': {
+                        'Key': {
+                            'FilterRules': [
+                                {
+                                    'Name': 'prefix',
+                                    'Value': VIDEO_UPLOAD_FOLDER_NAME,
+                                }
+                            ]
+                        }
+                    }
+                },
+            ]
+        }
+    )
+
+    return notificationResponse
+
+
+def create(properties, physical_id):
+    bucketName = properties['S3Bucket']
+    notificationId = properties['NotificationId']
+    functionArn = properties['FunctionARN']
+    response = addBucketNotificationTrigger(bucketName, notificationId, functionArn)
+    logger.info('AddBucketNotification response: %s' % json.dumps(response))
+
+    return cfnresponse.SUCCESS, physical_id
+
+
+def update(properties, physical_id):
+    return cfnresponse.SUCCESS, None
+
+
+def delete(properties, physical_id):
+    return cfnresponse.SUCCESS, None
+
+
+def handler(event, context):
+    logger.info('Received event: %s' % json.dumps(event))
+    status = cfnresponse.FAILED
+    new_physical_id = None
+
+    try:
+        properties = event.get('ResourceProperties')
+        physical_id = event.get('PhysicalResourceId')
+        status, new_physical_id = {
+          'Create': create,
+          'Update': update,
+          'Delete': delete
+        }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
+
+    except Exception as e:
+        logger.error('Exception: %s' % e)
+        status = cfnresponse.FAILED
+    finally:
+        cfnresponse.send(event, context, status, {}, new_physical_id)
+
