@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import time
 import threading
-from fileservices import create_folder, upload_files, get_and_parse_settings_file
+from fileservices import create_folder, get_camera_id, upload_videos, get_and_parse_settings_file
 from Camera import Camera
 import logging
 
@@ -32,6 +32,7 @@ def sync_configuration():
 
 if __name__ == '__main__':
     sync_configuration()
+    camera_id = get_camera_id()
 
     camera = Camera()
     camera.calibrate()
@@ -56,7 +57,7 @@ if __name__ == '__main__':
                     if uploading_thread.is_alive():
                         continue
                     
-                uploading_thread = threading.Thread(target=upload_files, name="FileUploader", args=(completed_video_output_path,))
+                uploading_thread = threading.Thread(target=upload_videos, name="VideoUploader", args=(completed_video_output_path, camera_id,))
                 uploading_thread.start()
                 clips_since_last_upload = 0
             

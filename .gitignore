@@ -6,7 +6,7 @@ venv
 
 
 # Client-specific files
-client/settings.json
+client/config/*
 
 # Cloud-specific files
 cloud/.aws-sam
