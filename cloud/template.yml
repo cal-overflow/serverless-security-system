@@ -260,11 +260,11 @@ Resources:
         # PackageType: Zip
       Environment:
         Variables:
-          S3_BUCKET: !Ref StackS3Bucket
+          S3_BUCKET: !Ref S3Bucket
       Role: !GetAtt UploadHandlerFunctionRole.Arn
       Timeout: 10
       Code:
-        S3Bucket: !Ref S3Bucket
+        S3Bucket: !Ref StackS3Bucket
         S3Key: !Ref UploadHandlerFunctionS3Key
 
    # These resources are needed to add an event "notification" that triggers UploadHandlerLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
