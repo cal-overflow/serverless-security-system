@@ -6,12 +6,12 @@ Parameters:
   PresignUrlExpirationTime:
     Type: Number
     Description: The number (in seconds) that presigned url's are valid for. Note that this can is the default and can be later updated within the user interface.
-    Default: 3600
+    Default: 604800
 
   UserTokenExpirationTime:
     Type: Number
     Description: The number (in seconds) that user's authentication tokens are valid for.
-    Default: 604800 # 1 week
+    Default: 2419200 # 4 weeks
 
 Resources:
   S3Bucket:
