@@ -260,7 +260,7 @@ Resources:
         # PackageType: Zip
       Environment:
         Variables:
-          S3_BUCKET: !Ref S3Bucket
+          S3_BUCKET: !Ref StackS3Bucket
       Role: !GetAtt UploadHandlerFunctionRole.Arn
       Timeout: 10
       Code:
