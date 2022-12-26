@@ -3,9 +3,13 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: "AWS resources for a serverless security system"
 
 Parameters:
-  StackS3Bucket:
+  StackManagementS3Bucket:
     Type: String
     Description: The name of the stack S3 bucket (for storing lambda source code)
+
+  APILambdaFnS3Key:
+    Type: String
+    Description: The object key of the source code for the Serverless API lambda function.
 
   StaleVideoRemoverFunctionS3Key:
     Type: String
@@ -192,7 +196,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-api' # Do not change this without updating APILambdaFnAccessManagedPolicy's reference
-      CodeUri: lambda/api/
+      # CodeUri: lambda/api/
+      CodeUri: !Sub 's3://${StackManagementS3Bucket}/${APILambdaFnS3Key}'
       Handler: index.handler
       Runtime: python3.8
       PackageType: Zip
@@ -258,7 +263,7 @@ Resources:
       Role: !GetAtt StaleVideoRemoverFunctionRole.Arn
       Timeout: 15
       Code:
-        S3Bucket: !Ref StackS3Bucket
+        S3Bucket: !Ref StackManagementS3Bucket
         S3Key: !Ref StaleVideoRemoverFunctionS3Key
 
 
@@ -337,7 +342,7 @@ Resources:
       Role: !GetAtt UploadHandlerFunctionRole.Arn
       Timeout: 10
       Code:
-        S3Bucket: !Ref StackS3Bucket
+        S3Bucket: !Ref StackManagementS3Bucket
         S3Key: !Ref UploadHandlerFunctionS3Key
 
    # These resources are needed to add an event "notification" that triggers UploadHandlerLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
@@ -376,7 +381,7 @@ Resources:
       Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
       Timeout: 240
       Code:
-        S3Bucket: !Ref StackS3Bucket
+        S3Bucket: !Ref StackManagementS3Bucket
         S3Key: !Ref AttachLambdaS3NotificationTriggerFunctionS3Key
 
 
