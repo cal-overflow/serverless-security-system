@@ -2,7 +2,7 @@ import boto3
 import json
 import os
 
-client_properties_that_can_change_by_user_input = [ 'name' ]
+client_properties_that_can_change_by_user_input = [ 'name', 'motion_threshold' ]
 BUCKET = os.environ.get('S3_BUCKET')
 
 s3_client = boto3.client('s3')
@@ -53,8 +53,8 @@ def get_all_clients(event, _):
                 clients.append(json.load(f))
 
 
-        except Exception as e:
-            return { 'statusCode': 500, 'body': json.dumps(f'An error occurred while fetching some clients\nError:\n{e}') }
+        except:
+            return { 'statusCode': 500, 'body': json.dumps('An error occurred while fetching some clients') }
 
     return { 'statusCode': 200, 'body': json.dumps(clients) }
 
@@ -98,7 +98,7 @@ def update_client(event, _):
 
     client_file_key = get_client_object_key(client_to_update)
     
-    local_file = f'/tmp/{client_to_get}.json'
+    local_file = f'/tmp/{client_to_update}.json'
     try:
         s3_client.download_file(BUCKET, client_file_key, local_file)
 
@@ -110,17 +110,17 @@ def update_client(event, _):
     try:
         updated_client = { **client }
 
-        for key in client_updates.items():
+        for key, val in client_updates.items():
             if key in client_properties_that_can_change_by_user_input:
-                updated_client[key] = client_updates[key]
+                updated_client[key] = val
 
         with open(local_file, 'w') as f:
             json.dump(updated_client, f)
 
-        s3_client.upload_file(BUCKET, client_file_key, local_file)
+        s3_client.upload_file(local_file, BUCKET, client_file_key)
 
-        return { 'statusCode': 200, 'body': json.dumps(client) }
+        return { 'statusCode': 200, 'body': json.dumps(updated_client) }
 
-    except Exception as e:
-        return { 'statusCode': 500, 'body': json.dumps(f'An error occurred while trying to update the client\nError:\n{e}') }
+    except:
+        return { 'statusCode': 500, 'body': json.dumps('An error occurred while trying to update the client') }
 
