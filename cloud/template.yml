@@ -251,11 +251,31 @@ Resources:
         Variables:
           S3_BUCKET: !Ref S3Bucket
       Role: !GetAtt StaleVideoRemoverFunctionRole.Arn
-      Timeout: 10
+      Timeout: 15
       Code:
         S3Bucket: !Ref StackS3Bucket
         S3Key: !Ref StaleVideoRemoverFunctionS3Key
 
+
+  DailyTriggerEvent:
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: !Sub 'A cloudwatch event that triggers the stale video remover lambda function in ${AWS::StackName}'
+      ScheduleExpression: cron(0 0 * * ? *) # Every day at 00:00
+      EventBusName: String
+      Name: String
+      RoleArn: String
+      Targets: 
+        - Id: VideoRemoverLambdaFn
+          Arn: !GetAtt StaleVideoRemoverLambdaFn.Arn
+
+  DailyTriggerEventLambdaInvocationPermission: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref StaleVideoRemoverLambdaFn
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt DailyTriggerEvent.Arn
 
 
 
