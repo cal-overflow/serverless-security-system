@@ -320,7 +320,7 @@ Resources:
                     'LambdaFunctionArn': functionArn,
                     'Events': [
                       's3:ObjectCreated:*'
-                    ]
+                    ],
                     'Filter': {
                         'Key': {
                             'FilterRules': [
