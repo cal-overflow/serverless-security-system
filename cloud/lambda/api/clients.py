@@ -49,8 +49,8 @@ def get_client(event, _):
     try:
         s3_client.download_file(BUCKET, get_client_object_key(client_to_get), local_file)
 
-    except:
-        return { 'statusCode': 404, 'body': json.dumps('Client does not exist') }
+    except Exception as e:
+        return { 'statusCode': 404, 'body': json.dumps(f'Client does not exist\n{e}') }
 
     with open(local_file) as f:
         client = json.load(f)
