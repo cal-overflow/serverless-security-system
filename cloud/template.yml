@@ -322,8 +322,10 @@ Resources:
                             'Filter': {
                                 'Key': {
                                     'FilterRules': [
-                                        'Name': 'prefix',
-                                        'Value': VIDEO_UPLOAD_FOLDER_NAME
+                                        {
+                                            'Name': 'prefix',
+                                            'Value': VIDEO_UPLOAD_FOLDER_NAME
+                                        }
                                     ]
                                 }
                             }
