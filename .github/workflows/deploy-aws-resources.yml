@@ -94,7 +94,7 @@ jobs:
 
   deploy-system-stack:
     name: Deploy System
-    needs: [deploy-management-stack, upload-lambda-source-code]
+    needs: [deploy-management-stack, upload-source-code]
     runs-on: ubuntu-latest
     defaults:
       run:
