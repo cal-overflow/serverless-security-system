@@ -120,3 +120,10 @@ jobs:
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           aws s3 cp settings.json s3://$BUCKET/configuration/
 
+      - name: Generate Github Actions summary
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
+          echo "### System information :lock: :camera:" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend: *Not yet implemented*"
+          echo "API: [$API_URL]($API_URL)" >> $GITHUB_STEP_SUMMARY
+

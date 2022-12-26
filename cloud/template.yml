@@ -213,7 +213,7 @@ Resources:
           VIDEO_PURGER_FUNCTION_NAME: !Ref StaleVideoRemoverLambdaFn
       Role: !GetAtt APIFunctionRole.Arn
       Timeout: 30
-      FunctionUrlConfig: # Necessary for outputing APIUrlEndpoint (needed for frontend)
+      FunctionUrlConfig: # Necessary for outputing APIUrl (needed for frontend)
         AuthType: NONE
 
 
@@ -401,7 +401,7 @@ Outputs:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
 
-  APIUrlEndpoint:
+  APIUrl:
     Value: !GetAtt APILambdaFnUrl.FunctionUrl
     Description: The serverless API URL
 
