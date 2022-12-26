@@ -11,8 +11,6 @@ Parameters:
     Type: String
     Description: The object key of the source code for the UploadHandlerLambdaFn lambda function.
 
-
-
   # Optional parameters
   PresignUrlExpirationTime:
     Type: Number

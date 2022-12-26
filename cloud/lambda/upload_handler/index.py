@@ -20,9 +20,8 @@ def handler(event, _):
 
     client = {
         'id': object_key.split('_')[-1][:-4],
-        'last_known_ip': record['requestParameters']['sourceIPAddress'],
-        'last_video_upload': object_key,
-        'last_video_upload_time': event_epoch_time
+        'last_upload_key': object_key,
+        'last_upload_time': event_epoch_time
     }
 
     client_object_key = f'configuration/clients/{client["id"]}.json'
