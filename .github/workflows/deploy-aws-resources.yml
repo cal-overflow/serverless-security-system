@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
@@ -63,7 +63,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
@@ -106,7 +106,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v1-node16
         with:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
@@ -124,6 +124,6 @@ jobs:
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
           echo "### System information :lock: :camera:" >> $GITHUB_STEP_SUMMARY
-          echo "Frontend: *Not yet implemented*"
+          echo "Frontend: *Not yet implemented*" >> $GITHUB_STEP_SUMMARY
           echo "API: [$API_URL]($API_URL)" >> $GITHUB_STEP_SUMMARY
 
