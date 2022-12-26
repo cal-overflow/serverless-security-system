@@ -13,13 +13,15 @@ s3_client = boto3.client('s3')
 # Helper functions
 def get_files_in_folder(folder, suffix=''):
     '''Get all files in a given folder. Optionally, a suffix can be used to filter the results.'''
+
     files = []
 
-    # TODO - pagination for when there is more than 1000 objects
-    response = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=folder)
 
-    if response is not None and 'Contents' in response.keys():
-        for obj_data in response['Contents']:
+    paginator = s3_client.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=BUCKET, Prefix=folder)
+
+    for page in pages:
+        for obj_data in page['Contents']:
             if not obj_data['Key'].endswith(suffix):
                 continue
 
