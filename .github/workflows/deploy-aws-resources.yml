@@ -54,8 +54,8 @@ jobs:
     defaults:
       run:
         working-directory: ./cloud
-    environment:
-      STACK_MANAGEMENT_BUCKET: ${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}
+    env:
+      STACK_MANAGEMENT_BUCKET: "${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}"
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -96,7 +96,7 @@ jobs:
     defaults:
       run:
         working-directory: ./cloud
-    environment:
+    env:
       STACK_MANAGEMENT_BUCKET: ${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}
     steps:
       - name: Checkout repo
