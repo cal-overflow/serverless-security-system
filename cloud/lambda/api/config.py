@@ -73,21 +73,23 @@ def update_config(event, _):
     
     del new_configuration['presign_url_expiration_time']
 
-    with open('/tmp/output.json', 'w') as output_file:
-        json.dump(new_configuration, output_file)
-
-    s3_client.upload_file('/tmp/output.json', BUCKET, SETTINGS_FILE_KEY)
 
     if new_configuration['days_to_keep_motionless_videos'] < old_configuration['days_to_keep_motionless_videos']:
-        print('invoking video purger lambda function') # TODO - delete
-
-        lambda_client.invoke(
+        delete_old_footage_response = lambda_client.invoke(
             FunctionName=VIDEO_PURGER_FUNCTION_NAME,
             Payload=json.dumps({
                 'previous_config': old_configuration,
                 'new_config': new_configuration
             }),
         )
+
+        if delete_old_footage_response['statusCode'] != 200:
+            return { 'statusCode': 500, 'body': json.dumps('Something went wrong when updating the `days_to_keep_motionless_videos`. The configuration failed to update.') }
+    
+    with open('/tmp/output.json', 'w') as output_file:
+        json.dump(new_configuration, output_file)
+
+    s3_client.upload_file('/tmp/output.json', BUCKET, SETTINGS_FILE_KEY)
 
     return { 'statusCode': 200, 'body': event['body'] }
 
