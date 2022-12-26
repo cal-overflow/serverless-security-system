@@ -56,9 +56,9 @@ def get_and_parse_settings_file():
 
     create_folder('config')
 
-    s3.download_file(S3_BUCKET, SETTINGS_FILE_KEY, 'config/settings.json')
+    s3.download_file(S3_BUCKET, SETTINGS_FILE_KEY, LOCAL_SETTNGS_FILE)
 
-    with open('settings.json') as settings_file:
+    with open(LOCAL_SETTNGS_FILE) as settings_file:
         settings = json.load(settings_file)
 
     return settings
