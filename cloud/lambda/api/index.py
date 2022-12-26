@@ -1,6 +1,7 @@
 from auth import get_authenticated_user, login, logout, refresh_token
 from config import get_config, update_config
 from users import create_user, delete_user, get_all_users, get_user, update_user
+from clients import get_all_clients, get_client, update_client
 from videos import get_videos
 
 
@@ -67,5 +68,21 @@ def handler(event, context):
             else:
                 invalid_request_method = True
    
+    elif event['rawPath'].startswith('/client'):
+        contains_id_in_path = len(event['rawPath'].strip('/client')) > 1
+        
+        if contains_id_in_path:
+            if method == 'GET':
+                return get_client(event, context)
+            elif method == 'PATCH':
+                return update_client(event, context)
+            else:
+                invalid_request_method = True
+        else:
+            if method == 'GET':
+                return get_all_clients(event, context)
+            else:
+                invalid_request_method = True
+
     return { 'statusCode': 405 if invalid_request_method else 400 }
 

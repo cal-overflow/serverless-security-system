@@ -8,7 +8,7 @@ BUCKET = os.environ.get('S3_BUCKET')
 s3_client = boto3.client("s3")
 
 
-def handler(event, context):
+def handler(event, _):
     '''Handles file uploads from clients. Updates latest information for the client that uploaded the clip.'''
 
     record = event['Records'][0]
