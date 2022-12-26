@@ -14,10 +14,10 @@ permissions:
 env:
   REGION: us-east-1
   STACK_NAME: security-system
-  API_LAMBDA_FN_S3_KEY: lambda/api.zip
-  UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler.zip
-  ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger.zip
-  STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY: lambda/video_purger.zip
+  API_LAMBDA_FN_S3_KEY: lambda/api${{ github.run_id	}}.zip
+  UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler${{ github.run_id }}.zip
+  ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger${{ github.run_id }}.zip
+  STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY: lambda/video_purger${{ github.run_id }}.zip
 
 
 jobs:
