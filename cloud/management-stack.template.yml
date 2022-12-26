@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Basic stack with S3 bucket used for a more advanced Cloudformation template.
+Description: Basic stack with an S3 bucket used for managing various resources (i.e., lambda source code) in a more complex cloudformation stack.
 
 Resources:
   S3Bucket:

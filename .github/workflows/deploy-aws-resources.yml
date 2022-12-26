@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: test-system # TODO - change back
+  STACK_NAME: security-system
   API_LAMBDA_FN_S3_KEY: lambda/api.zip
   UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler.zip
   ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger.zip
@@ -40,7 +40,7 @@ jobs:
         run: |
           MANAGEMENT_BUCKET_STACK_NAME="$STACK_NAME-management-bucket-stack"
 
-          sam deploy --region $REGION -t bucket.template.yml --stack-name $MANAGEMENT_BUCKET_STACK_NAME
+          sam deploy --region $REGION -t management-stack.template.yml --stack-name $MANAGEMENT_BUCKET_STACK_NAME
           STACK_MANAGEMENT_BUCKET=$(aws cloudformation describe-stacks --stack-name=$MANAGEMENT_BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_MANAGEMENT_BUCKET=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_ENV
           
