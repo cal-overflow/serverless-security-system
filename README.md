@@ -16,8 +16,9 @@ See more in the [Client README](./client/README.md).
 ##### Cloud
 Cloud computing resources (such as AWS Lambda) run and process the footage recorded by each client. \
 The most essential resources are:
-- S3 - store videos uploaded by clients
-- Lambda - Process videos in S3. Remove videos that are not important (i.e., do not have any motion)
+- S3 - store configuration file and videos uploaded by clients.
+- Lambda - Handle file uploads to S3 (record client data). Remove videos that are not important (i.e., do not have any motion). Also serve as the backend (API) for interacting with the system.
+- DynamoDB - store data related to users.
 
 See more in the [Cloud README](./cloud/README.md).
 

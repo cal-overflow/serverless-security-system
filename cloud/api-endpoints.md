@@ -1,14 +1,13 @@
 # API
 The API (backend) for the application utilizes AWS Serverless functions to reduce costs when serving content.
 
-The various endpoints are documented below. Note that these are more rough notes and probably not a reliable representation of the API. (There's no guarantee that these will be updated).
-
+The various endpoints are documented below. Note that these are rough notes and may not be a very reliable representation of the API.
 
 
 ## Videos (footage)
 All `/videos` endpoints accept the following query parameters:
 - `date` -  A specific day to filter. Defaults to the current date (for wherever the the Lambda function is running).
-- `camera` - A specific camera name to filter.
+- `camera` - A specific camera (client) id to filter.
 
 ### GET `/videos/all`
 Return all video footage
@@ -46,7 +45,7 @@ Revokes the user's current access token.
 
 ## Config
 ### GET `/config`
-**Requires Admin privileges**
+**Requires Admin priviliges** \
 Returns the system configuration. \
 Example response:
 ```json
@@ -59,14 +58,14 @@ Example response:
 ```
 
 ### POST `/config`
-**Requires Admin privileges**
+**Requires Admin priviliges** \
 Updates the system configuration. Returns the updated system configuration. 
 
 
 
 ## Users
 ### GET `/users`
-**Requires Admin privileges**
+**Requires Admin priviliges** \
 Returns a list of all users. \
 Example response:
 ```json
@@ -80,7 +79,7 @@ Example response:
 ```
 
 ### POST `/users`
-**Requires Admin privileges**
+**Requires Admin priviliges** \
 Create a new user. \
 Example body:
 ```json
@@ -92,7 +91,7 @@ Example body:
 ```
 
 ### GET `/users/{username}`
-**Requires Admin privileges** for getting users other than oneself
+**Requires Admin priviliges** for getting users other than oneself .
 Returns the user data
 Example response for `/users/christian`:
 ```json
@@ -104,8 +103,8 @@ Example response for `/users/christian`:
 ```
 
 ### PATCH `/users/{username}`
-**Requires Admin privileges** for updating users other than oneself
-Updates a user. Only requires fields that are being changed.
+**Requires Admin priviliges** for updating users other than oneself.
+Updates a user. Only requires fields that are being changed. \
 Example body for changing user `christian`'s name to `steve` with PATCH `/users/christian`:
 ```json
 {
@@ -114,7 +113,7 @@ Example body for changing user `christian`'s name to `steve` with PATCH `/users/
 ```
 
 ### DELETE `/users/{username}`
-**Requires Admin privileges**
+**Requires Admin priviliges** \
 Permanently deletes a user \
 Example response:
 ```text
@@ -140,7 +139,7 @@ Example response:
 
 
 ### GET `/clients/{client_id}`
-Returns the client data
+Returns the client data. \
 Example response for `/client/1a2b3c`:
 ```json
 {
@@ -153,8 +152,8 @@ Example response for `/client/1a2b3c`:
 ```
 
 ### PATCH `/clients/{client_id}`
-**Requires Admin privileges**
-Updates a client. Only `name` and `motion_threshold` fields are allowed.
+**Requires Admin priviliges** \
+Updates a client. Only `name` and `motion_threshold` fields are allowed. \
 Example body and response for changing client `1a2b3c`'s motion threshold to 3500 via PATCH `/client/1a2b3c`:
 Body:
 ```json

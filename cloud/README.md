@@ -5,3 +5,7 @@ Cloud computing resources (such as AWS Lambda) run and process the footage recor
 # TODO
 TODO - explain the cloud architecture
 
+
+# Backend
+To view the various API endpoints, view [api-endpints.md](./api-endpoints.md).
+
