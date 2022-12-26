@@ -1,4 +1,4 @@
-name: Deploy AWS Resources
+name: Deploy Cloud Resources
 
 on:
   push:
@@ -90,7 +90,7 @@ jobs:
           zip tmp.zip requirements.txt *.py
           aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY
 
-  deploy:
+  deploy-system:
     needs: [deploy-management-stack, upload-lambda-source-code]
     runs-on: ubuntu-latest
     defaults:
@@ -111,8 +111,9 @@ jobs:
       - name: Deploy Security System stack
         run: |
           sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_MANAGEMENT_BUCKET --parameter-overrides "StackManagementS3Bucket=$STACK_MANAGEMENT_BUCKET" "APILambdaFnS3Key=$API_LAMBDA_FN_S3_KEY" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY" "AttachLambdaS3NotificationTriggerFunctionS3Key=$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY" "StaleVideoRemoverFunctionS3Key=$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY"
-          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
 
       - name: Upload system configuration file
-        run: aws s3 cp settings.json s3://$BUCKET/configuration/
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+          aws s3 cp settings.json s3://$BUCKET/configuration/
 
