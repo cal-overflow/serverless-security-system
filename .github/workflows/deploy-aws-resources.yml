@@ -26,8 +26,6 @@ jobs:
     defaults:
       run:
         working-directory: ./cloud
-    env:
-      MANAGEMENT_BUCKET_STACK_NAME: ${{ env.STACK_NAME }}-management-bucket-stack
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -40,6 +38,8 @@ jobs:
       
       - name: Deploy management-bucket stack
         run: |
+          MANAGEMENT_BUCKET_STACK_NAME="$STACK_NAME-management-bucket-stack"
+
           sam deploy --region $REGION -t bucket.template.yml --stack-name $MANAGEMENT_BUCKET_STACK_NAME
           STACK_MANAGEMENT_BUCKET=$(aws cloudformation describe-stacks --stack-name=$MANAGEMENT_BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_MANAGEMENT_BUCKET=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_ENV
