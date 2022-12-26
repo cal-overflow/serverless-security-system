@@ -21,7 +21,7 @@ def handler(event, context):
 
     folder_to_delete = f'footage/normal/{cutoff_date.strftime("%Y-%m/%d")}'
 
-    client.delete_object(Bucket=BUCKET, Key=folder_to_delete)
+    s3_client.delete_object(Bucket=BUCKET, Key=folder_to_delete)
 
 
 

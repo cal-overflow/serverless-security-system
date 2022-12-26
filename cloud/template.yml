@@ -215,7 +215,7 @@ Resources:
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
           - Effect: Allow
             Action: [ 's3:DeleteObject' ]
-            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/footage/*'
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/footage/normal/*'
           - Effect: Deny
             Action: [ 's3:Put*', 's3:DeleteObject' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
