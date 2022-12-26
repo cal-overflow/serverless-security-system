@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 import time
 import threading
-from fileservices import create_folder, get_camera_id, upload_videos, get_and_parse_settings_file
+from fileservices import create_folder, get_camera_id, upload_videos, get_and_parse_settings_files
 from Camera import Camera
 import logging
 
@@ -21,10 +21,15 @@ logging.basicConfig(
 
 
 def sync_configuration():
+    global camera_id
     global settings
-    settings = get_and_parse_settings_file()
-
     global time_since_last_config_sync
+
+
+    if 'camera_id' not in globals(): # if the camera_id has not already been fetched
+        camera_id = get_camera_id()
+
+    settings = get_and_parse_settings_files(camera_id)
     time_since_last_config_sync = time.time()
 
     logging.info('Configuration synced')
@@ -32,7 +37,6 @@ def sync_configuration():
 
 if __name__ == '__main__':
     sync_configuration()
-    camera_id = get_camera_id()
 
     camera = Camera()
     camera.calibrate()
@@ -49,7 +53,7 @@ if __name__ == '__main__':
                 settings_sync_thread = threading.Thread(target=sync_configuration, name="SettingsSyncer", args=())
                 settings_sync_thread.start()
 
-            camera.record_clip(settings['clip_length'], settings['is_motion_outlined'])
+            camera.record_clip(settings)
             clips_since_last_upload += 1
             
             if clips_since_last_upload >= settings['clips_per_upload']:

@@ -11,7 +11,6 @@ load_dotenv()
 output_path = os.getenv('OUTPUT_PATH', './tmp')
 WIDTH = int(os.getenv('WIDTH', '0'))
 HEIGHT = int(os.getenv('HEIGHT', '0'))
-MOTION_THRESHOLD = int(os.getenv('MOTION_THRESHOLD', 3000))
 
 
 def get_contours_between_frames(frame1, frame2):
@@ -70,10 +69,13 @@ class Camera:
         return
 
 
-    def record_clip(self, clip_length, is_motion_outlined):
+    def record_clip(self, settings):
         '''Record a video clip. Will calibrate the camera if it has not already been calibrated.'''
         if self.camera is None:
             self.calibrate()
+
+        motion_threshold = settings['camera']['motion_threshold'] if 'camera' in settings else settings['default_motion_threshold']
+        is_motion_outlined = settings['is_motion_outlined']
 
         start_time = time.time()
         temp_video_filename = f"{output_path}/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}.mp4"
@@ -85,7 +87,7 @@ class Camera:
         prev_frame = None
         contains_motion = False
 
-        for i in range(self.fps * clip_length):
+        for i in range(self.fps * settings['clip_length']):
             _, frame = self.camera.read() # read frame from camera
             frame_copy = frame.copy() # Copy the previous frame before the timestamp or motion-outline boxes are drawn
             timestamp = time.strftime("%m/%d/%Y %I:%M:%S %p", time.localtime(time.time()))
@@ -95,7 +97,7 @@ class Camera:
                 contours = get_contours_between_frames(frame, prev_frame)
 
                 for contour in contours:
-                   if cv.contourArea(contour) >= MOTION_THRESHOLD:
+                   if cv.contourArea(contour) >= motion_threshold:
                        if not contains_motion:
                            contains_motion = True
                        if is_motion_outlined:

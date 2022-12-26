@@ -7,12 +7,13 @@ import uuid
 load_dotenv()
 
 S3_BUCKET = os.getenv('S3_BUCKET')
-SETTINGS_FILE_KEY = 'configuration/settings.json'
-LOCAL_CONFIG_FOLDER = 'config'
-LOCAL_SETTNGS_FILE = f'{LOCAL_CONFIG_FOLDER}/settings.json'
-CAMERA_IDENTIFER_FILE = f'{LOCAL_CONFIG_FOLDER}/CAMERA_IDENTIFIER.txt'
 output_path = os.getenv('OUTPUT_PATH', './tmp')
 completed_video_output_path = f'{output_path}/completed/'
+
+SYSTEM_SETTINGS_FILE_KEY = 'configuration/settings.json'
+LOCAL_CONFIG_FOLDER = 'config'
+LOCAL_SYSTEM_SETTINGS_FILE = f'{LOCAL_CONFIG_FOLDER}/settings.json'
+CAMERA_IDENTIFER_FILE = f'{LOCAL_CONFIG_FOLDER}/CAMERA_IDENTIFIER.txt'
 
 
 session = boto3.Session(
@@ -51,15 +52,28 @@ def upload_videos(folder, camera_id):
             os.remove(item_full_path)
 
 
-def get_and_parse_settings_file():
-    '''Get the settings file from the s3 bucket.'''
+def get_and_parse_settings_files(camera_id):
+    '''Get the system settings and camera settings files from the s3 bucket. Returns a dictionary representing the settings.'''
 
     create_folder('config')
 
-    s3.download_file(S3_BUCKET, SETTINGS_FILE_KEY, LOCAL_SETTNGS_FILE)
+    s3.download_file(S3_BUCKET, SYSTEM_SETTINGS_FILE_KEY, LOCAL_SYSTEM_SETTINGS_FILE)
 
-    with open(LOCAL_SETTNGS_FILE) as settings_file:
+    with open(LOCAL_SYSTEM_SETTINGS_FILE) as settings_file:
         settings = json.load(settings_file)
+
+    try:
+        camera_config_file = f'configuration/clients/{camera_id}.json'
+        local_camera_config_file = f'{LOCAL_CONFIG_FOLDER}/{camera_id}.json'
+        s3.download_file(S3_BUCKET, camera_config_file, local_camera_config_file)
+
+        
+        with open(local_camera_config_file) as camera_config_file:
+            camera_config = json.load(camera_config_file)
+
+            settings['camera'] = camera_config
+    except:
+        pass
 
     return settings
 
