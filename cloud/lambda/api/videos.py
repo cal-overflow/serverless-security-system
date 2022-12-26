@@ -18,6 +18,7 @@ def get_files(prefix, suffix=''):
     files = []
 
     paginator = s3_client.get_paginator('list_objects_v2')
+    print(f'getting items with prefix: {prefix}')
     pages = paginator.paginate(Bucket=BUCKET, Prefix=prefix)
 
     for page in pages:
