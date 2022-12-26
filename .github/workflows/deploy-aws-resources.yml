@@ -22,6 +22,7 @@ env:
 
 jobs:
   deploy-management-stack:
+    name: Deploy management stack
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -48,7 +49,8 @@ jobs:
 
           echo "BUCKET_NAME=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_OUTPUT
 
-  upload-lambda-source-code:
+  upload-source-code:
+    name: Upload Lambda source code
     needs: deploy-management-stack
     runs-on: ubuntu-latest
     defaults:
@@ -90,7 +92,8 @@ jobs:
           zip tmp.zip requirements.txt *.py
           aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY
 
-  deploy-system:
+  deploy-system-stack:
+    name: Deploy System
     needs: [deploy-management-stack, upload-lambda-source-code]
     runs-on: ubuntu-latest
     defaults:
