@@ -260,9 +260,10 @@ Resources:
   DailyTriggerEvent:
     Type: AWS::Events::Rule
     Properties: 
+      Name: !Sub '${AWS::StackName}-stale-video-remover-lambda-fn-daily-trigger'
       Description: !Sub 'A cloudwatch event that triggers the stale video remover lambda function in ${AWS::StackName}'
-      ScheduleExpression: cron(0 0 * * ? *) # Every day at 00:00
-      Name: !Sub '${AWS::StackName}-stale-video-remover-daily-trigger'
+      # ScheduleExpression: cron(0 0 * * ? *) # Every day at 00:00
+      ScheduleExpression: cron(0/5 0 * * ? *) # Every 5 minutes - DELETE THIS
       Targets: 
         - Id: VideoRemoverLambdaFn
           Arn: !GetAtt StaleVideoRemoverLambdaFn.Arn
