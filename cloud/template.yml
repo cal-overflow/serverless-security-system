@@ -214,6 +214,9 @@ Resources:
             Action: [ 's3:ListObjects*', 's3:ListBucket', 's3:GetObject' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
           - Effect: Allow
+            Action: [ 's3:ListObjects*', 's3:ListBucket', 's3:GetObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+          - Effect: Allow
             Action: [ 's3:DeleteObject' ]
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/footage/normal/*'
           - Effect: Deny
