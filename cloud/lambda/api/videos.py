@@ -85,7 +85,7 @@ def get_videos(event, _):
     # default query parameters
     requested_date = today
     requested_camera = ''
-    requested_hours = [ list(range(0, 24)) ]
+    requested_hours = list(range(0, 24))
 
     query_parameters = event.get('queryStringParameters', None)
 
@@ -102,7 +102,7 @@ def get_videos(event, _):
             start_hour = int(requested_hours_str[0])
             end_hour = int(requested_hours_str[1])
 
-            requested_hours = [list(range(start_hour, end_hour + 1))]
+            requested_hours = list(range(start_hour, end_hour + 1))
 
     
     if event['rawPath'].endswith('/all'):
