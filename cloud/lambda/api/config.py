@@ -66,6 +66,7 @@ def update_config(event, _):
                     'PRESIGN_URL_EXPIRATION_TIME': str(new_configuration['presign_url_expiration_time']),
                     'USER_TOKEN_EXPIRATION_TIME': USER_TOKEN_EXPIRATION_TIME,
                     'FUNCTION_NAME': FUNCTION_NAME,
+                    'VIDEO_PURGER_FUNCTION_NAME': VIDEO_PURGER_FUNCTION_NAME,
                 }
             }
         )
@@ -82,14 +83,10 @@ def update_config(event, _):
 
         lambda_client.invoke(
             FunctionName=VIDEO_PURGER_FUNCTION_NAME,
-            # InvocationType='RequestResponse',
-            # LogType='Tail',
-            # ClientContext='myContext',
-            Payload={
+            Payload=json.dumps({
                 'previous_config': old_configuration,
                 'new_config': new_configuration
-            },
-            # Qualifier='1'
+            }),
         )
 
     return { 'statusCode': 200, 'body': event['body'] }
