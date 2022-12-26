@@ -7,6 +7,7 @@ USERS_TABLE = os.environ.get('USERS_TABLE')
 PRESIGN_URL_EXPIRATION_TIME = int(os.environ.get('PRESIGN_URL_EXPIRATION_TIME'))
 USER_TOKEN_EXPIRATION_TIME = os.environ.get('USER_TOKEN_EXPIRATION_TIME')
 FUNCTION_NAME = os.environ.get('FUNCTION_NAME')
+VIDEO_PURGER_FUNCTION_NAME = os.environ.get('VIDEO_PURGER_FUNCTION_NAME')
 SETTINGS_FILE_KEY = "configuration/settings.json"
 
 
@@ -45,9 +46,15 @@ def update_config(event, _):
         return { 'statusCode': 400 }
     if type(new_configuration['presign_url_expiration_time']) != int:
         return { 'statusCode': 400 }
-
+    if type(new_configuration['default_motion_threshold']) != int:
+        return { 'statusCode': 400 }
+    if type(new_configuration['days_to_keep_motionless_videos']) != int:
+        return { 'statusCode': 400 }
 
     s3_client = boto3.client('s3')
+
+    old_configuration = json.loads(get_config(event, _)['body'])
+
     lambda_client = boto3.client('lambda')
 
     lambda_client.update_function_configuration(
@@ -69,6 +76,21 @@ def update_config(event, _):
         json.dump(new_configuration, output_file)
 
     s3_client.upload_file('/tmp/output.json', BUCKET, SETTINGS_FILE_KEY)
+
+    if new_configuration['days_to_keep_motionless_videos'] < old_configuration['days_to_keep_motionless_videos']:
+        print('invoking video purger lambda function') # TODO - delete
+
+        lambda_client.invoke(
+            FunctionName=VIDEO_PURGER_FUNCTION_NAME,
+            # InvocationType='RequestResponse',
+            # LogType='Tail',
+            # ClientContext='myContext',
+            Payload={
+                'previous_config': old_configuration,
+                'new_config': new_configuration
+            },
+            # Qualifier='1'
+        )
 
     return { 'statusCode': 200, 'body': event['body'] }
 

@@ -155,6 +155,9 @@ Resources:
           - Effect: Allow
             Action: [ 'dynamodb:Query' ]
             Resource: !Sub 'arn:aws:dynamodb:*:*:table/${UserDynamoTable}/index/*'
+          - Effect: Allow
+            Action: [ 'lambda:InvokeFunction' ]
+            Resource: !GetAtt StaleVideoRemoverLambdaFn.Arn
 
   APIFunctionRole:
     Type: AWS::IAM::Role
@@ -195,6 +198,7 @@ Resources:
           PRESIGN_URL_EXPIRATION_TIME: !Ref PresignUrlExpirationTime
           USER_TOKEN_EXPIRATION_TIME: !Ref UserTokenExpirationTime
           FUNCTION_NAME: !Sub '${AWS::StackName}-api'
+          VIDEO_PURGER_FUNCTION_NAME: !Ref StaleVideoRemoverLambdaFn
       Role: !GetAtt APIFunctionRole.Arn
       Timeout: 30
       FunctionUrlConfig: # Necessary for outputing APIUrlEndpoint (needed for frontend)
