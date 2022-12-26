@@ -14,7 +14,7 @@ def config_update_handler(previous_config, new_config):
     '''Handle scenarios where the configuration is updated. This is invoked by the API when a user updates the days_to_keep_motionless_videos option'''
 
     folders_to_remove = []
-    for n in list(range(new_config['days_to_keep_motionless_videos'], previous_config['days_to_keep_motionless_videos'] +1)):
+    for n in list(range(new_config['days_to_keep_motionless_videos'], previous_config['days_to_keep_motionless_videos'] + 1)):
         day_to_remove = today - timedelta(days=n)
         folder = f'footage/normal/{day_to_remove.strftime("%Y-%m/%d")}'
         folders_to_remove.append(folder)
