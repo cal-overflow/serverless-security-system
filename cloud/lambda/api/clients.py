@@ -62,10 +62,7 @@ def get_all_clients(event, _):
 def get_client(event, _):
     '''Returns a client based on the id in the path. Returns None if the client does not exist. Requires the authenticated user to be an admin.'''
 
-    print(event['rawPath'])
-    print(event['rawPath'].strip('/clients/'))
-    print(event['rawPath'].strip('/clients/').strip('/'))
-    client_to_get = event['rawPath'].strip('/clients/').strip('/')
+    client_to_get = event['rawPath'][len('/clients/'):]
 
     if '/' in client_to_get or client_to_get == '':
         return { 'statusCode': 400 }
@@ -91,7 +88,7 @@ def get_client(event, _):
 def update_client(event, _):
     '''Updates the client with the id in the path. Requires the authenticated user to be an admin.'''
 
-    client_to_update = event['rawPath'].strip('/clients/').strip('/')
+    client_to_update = event['rawPath'][len('/clients/'):]
 
     if '/' in client_to_update or client_to_update == '':
         return { 'statusCode': 400 }

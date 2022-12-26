@@ -54,7 +54,7 @@ def delete_user(event, _):
     if not event['authenticated_user']['admin']:
         return { 'statusCode': 403 }
 
-    user_to_delete = event['rawPath'].strip('/users/').strip('/')
+    user_to_delete = event['rawPath'][len('/users/'):]
 
     if '/' in user_to_delete or user_to_delete == '':
         return { 'statusCode': 400 }
@@ -68,7 +68,7 @@ def delete_user(event, _):
 def get_user(event, _):
     '''Returns a user based on the Username in the path. Returns None if the user does not exist. Requires the authenticated user to be an admin (or the requested user).'''
 
-    user_to_get = event['rawPath'].strip('/users/').strip('/')
+    user_to_get = event['rawPath'][len('/users/'):]
 
     if '/' in user_to_get or user_to_get == '':
         return { 'statusCode': 400 }
@@ -106,7 +106,7 @@ def get_all_users(event, _):
 def update_user(event, _):
     '''Updates the user with the Username in the path. Requires the authenticated user to be an admin (or the user being updated).'''
 
-    user_to_update = event['rawPath'].strip('/users/').strip('/')
+    user_to_update = event['rawPath'][len('/users/'):]
 
     if '/' in user_to_update or user_to_update == '':
         return { 'statusCode': 400 }
