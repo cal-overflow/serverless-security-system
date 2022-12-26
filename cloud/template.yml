@@ -313,7 +313,6 @@ Resources:
           VIDEO_UPLOAD_FOLDER_NAME='footage/'
 
           def addBucketNotificationTrigger(bucketName, notificationId, functionArn):
-              '''When invoked, this function attaches the PutObject event trigger on the given bucket as a trigger for the given function.'''
               notificationResponse = s3Client.put_bucket_notification_configuration(
                 Bucket=bucketName,
                 NotificationConfiguration={
