@@ -34,11 +34,10 @@ def get_files_in_folder(folder, suffix=''):
     return keys
 
 
-
 def get_client(event, _):
     '''Returns a client based on the id in the path. Returns None if the client does not exist. Requires the authenticated user to be an admin.'''
 
-    client_to_get = event['rawPath'].strip('/client/').strip('/')
+    client_to_get = event['rawPath'].strip('/clients/').strip('/')
 
     if '/' in client_to_get or client_to_get == '':
         return { 'statusCode': 400 }
@@ -50,14 +49,13 @@ def get_client(event, _):
     try:
         s3_client.download_file(BUCKET, get_client_object_key(client_to_get), local_file)
 
-        with open(local_file) as f:
-            client = json.load(f)
-
-        return { 'statusCode': 200, 'body': json.dumps(client) }
-
     except:
         return { 'statusCode': 404, 'body': json.dumps('Client does not exist') }
 
+    with open(local_file) as f:
+        client = json.load(f)
+
+    return { 'statusCode': 200, 'body': json.dumps(client) }
 
 
 def get_all_clients(event, _):
@@ -88,7 +86,7 @@ def get_all_clients(event, _):
 def update_client(event, _):
     '''Updates the client with the id in the path. Requires the authenticated user to be an admin.'''
 
-    client_to_update = event['rawPath'].strip('/client/').strip('/')
+    client_to_update = event['rawPath'].strip('/clients/').strip('/')
 
     if '/' in client_to_update or client_to_update == '':
         return { 'statusCode': 400 }

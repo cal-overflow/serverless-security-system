@@ -68,8 +68,8 @@ def handler(event, context):
             else:
                 invalid_request_method = True
    
-    elif event['rawPath'].startswith('/client'):
-        contains_id_in_path = len(event['rawPath'].strip('/client')) > 1
+    elif event['rawPath'].startswith('/clients'):
+        contains_id_in_path = len(event['rawPath'].strip('/clients')) > 1
         
         if contains_id_in_path:
             if method == 'GET':
