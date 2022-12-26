@@ -253,6 +253,21 @@ Resources:
         S3Key: !Ref StaleVideoRemoverFunctionS3Key
 
 
+  DailyTriggerEvent:
+    Type: AWS::Events::Rule
+    Properties: 
+    Description: !Sub 'A cloudwatch event that triggers the stale video remover lambda function in ${AWS::StackName}'
+      EventBusName: String
+      EventPattern: Json
+      Name: String
+      RoleArn: String
+      ScheduleExpression: String
+      State: String
+      Targets: 
+        - Id: VideoRemoverLambdaFn
+          Arn: !GetAtt StaleVideoRemoverLambdaFn.Arn
+
+
 
   # The various resources for a Lambda function that processes uploads - This is used for updating client information (if a client is online, offline, last-known IP address, etc.)
 

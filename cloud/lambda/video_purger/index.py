@@ -1,5 +1,6 @@
 import boto3
 import os
+import json
 from datetime import datetime, timedelta
 
 
@@ -26,4 +27,3 @@ def handler(event, context):
 
 
 # TODO - add logic for when this gets triggered by the api lambda function (which should trigger this whenever the cutoff date is changed to a smaller value)
-
