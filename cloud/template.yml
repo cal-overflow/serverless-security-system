@@ -198,8 +198,8 @@ Resources:
       FunctionName: !Sub '${AWS::StackName}-api' # Do not change this without updating APILambdaFnAccessManagedPolicy's reference
       # CodeUri: lambda/api/
       CodeUri: 
-        S3Bucket: !Ref StackManagementS3Bucket
-        S3Key: !Ref APILambdaFnS3Key
+        Bucket: !Ref StackManagementS3Bucket
+        Key: !Ref APILambdaFnS3Key
       Handler: index.handler
       Runtime: python3.8
       PackageType: Zip
