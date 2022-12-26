@@ -2,7 +2,7 @@ import boto3
 import json
 import os
 
-
+client_properties_that_can_change_by_user_input = [ 'name' ]
 BUCKET = os.environ.get('S3_BUCKET')
 
 s3_client = boto3.client('s3')
@@ -72,8 +72,6 @@ def get_client(event, _):
 
     local_file = f'/tmp/{client_to_get}.json'
     try:
-        print('object key:')
-        print(get_client_object_key(client_to_get))
         s3_client.download_file(BUCKET, get_client_object_key(client_to_get), local_file)
 
     except:
@@ -112,8 +110,8 @@ def update_client(event, _):
     try:
         updated_client = { **client }
 
-        for key, val in client.items():
-            if key in client_updates.keys():
+        for key in client_updates.items():
+            if key in client_properties_that_can_change_by_user_input:
                 updated_client[key] = client_updates[key]
 
         with open(local_file, 'w') as f:

@@ -38,6 +38,7 @@ def handler(event, _):
             **client,
         }
     except:
+        client['name'] = 'Unnamed'
         pass
 
     with open('/tmp/client.json', 'w') as updated_client_file:
