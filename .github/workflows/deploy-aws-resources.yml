@@ -12,8 +12,9 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: security-system-test
+  STACK_NAME: test-system # TODO - change back
   BUCKET_STACK_NAME: security-system-stack-bucket
+  UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler.zip
 
 
 jobs:
@@ -32,15 +33,21 @@ jobs:
           role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
           aws-region: ${{ env.REGION }}
       
-      - name: Deploy basic S3 bucket stack
+      - name: Deploy S3 bucket stack
         run: |
           sam deploy --region $REGION -t bucket.template.yml --stack-name $BUCKET_STACK_NAME
           STACK_BUCKET=$(aws cloudformation describe-stacks --stack-name=$BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           echo "STACK_BUCKET=$STACK_BUCKET" >> $GITHUB_ENV
+          
+      - name: Upload upload-handler lambda function source code (to S3)
+        run: |
+          cd lambda/upload_handler
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY
 
       - name: Deploy Security System stack
         run: |
-          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET"
+          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY"
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
 
           aws s3 cp settings.json s3://$BUCKET/configuration/

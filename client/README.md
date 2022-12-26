@@ -1,7 +1,7 @@
 # serverless-security-system
 ## Client
 A "Client" is more-or-less a camera + computer that has the purpose of recording footage and periodically sending it to the cloud storage. \
-Little or no video processing is done at the client-side to allow "weak" computers (such as a raspberry pi) to act as the client.
+Very minimal video processing is done at the client-side to allow less powerful computers (such as a raspberry pi) to act as the client.
 
 ## Client software
 Linux: Run the client software using docker.
@@ -55,9 +55,6 @@ The following environment variables are used by the client. It is recommended th
 | `S3_BUCKET` | - | The name of the unique S3 bucket to which clips should be synced. | ✅ |
 | `AWS_ACCESS_KEY_ID` | - | The ID of the access key that is to be used for authenticating requests to AWS services (S3). | ✅ |
 | `AWS_SECRET_ACCESS_KEY` | - | The secret access key that is to be used for authenticating requests to AWS services (S3). | ✅ |
-| `CAMERA_NAME` | - | The name of the camera used in identifying the origin of clips. If no value is provided, a unique identifier is generated. | ❌ |
-| `CLIP_LENGTH` | `30` | The length, in seconds, that clips should be saved. | ❌ |
-| `OUTPUT_PATH` | `./tmp` | The path to the folder where video clips should be saved. Note - this is not currently supported for the Docker configuration. | ❌ |
 
 To make things simpler, you may copy this base `.env` file and fill out the environment variables as needed.
 ```
@@ -66,11 +63,6 @@ REGION=
 S3_BUCKET=
 AWS_ACCESS_KEY_ID=
 AWS_SECRET_ACCESS_KEY=
-
-# Optional
-CAMERA_NAME=
-CLIPS_PER_UPLOAD=
-CLIP_LENGTH=
 ```
 
 Pass the environment variables via the command line:

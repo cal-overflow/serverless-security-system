@@ -1,5 +1,6 @@
 {
   "is_motion_outlined": true,
   "clip_length": 60,
-  "clips_per_upload": 1
+  "clips_per_upload": 1,
+  "default_motion_threshold": 5000
 }

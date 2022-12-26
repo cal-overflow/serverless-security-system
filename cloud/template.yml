@@ -1,25 +1,64 @@
 AWSTemplateFormatVersion: 2010-09-09
+Transform: 'AWS::Serverless-2016-10-31'
 Description: "AWS resources for a serverless security system"
 
 Parameters:
-  # TODO - remove this (and the stack for the bucket) if this doesn't end up being used
   StackS3Bucket:
     Type: String
-    Description: The name of the Stack S3 bucket (for storing lambda source code)
+    Description: The name of the stack S3 bucket (for storing lambda source code)
 
+  UploadHandlerFunctionS3Key:
+    Type: String
+    Description: The object key of the source code for the UploadHandlerLambdaFn lambda function.
+
+  PresignUrlExpirationTime:
+    Type: Number
+    Description: The number (in seconds) that presigned url's are valid for. Note that this can is the default and can be later updated within the user interface.
+    Default: 604800
+
+  UserTokenExpirationTime:
+    Type: Number
+    Description: The number (in seconds) that user's authentication tokens are valid for.
+    Default: 2419200 # 4 weeks
 
 Resources:
-  S3BucketUploadOnlyAccessManagedPolicy:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    # DeletionPolicy: Retain TODO - restore this
+
+  S3BucketClientAccessManagedPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       ManagedPolicyName: !Sub 'Serverless-Security-System-S3-Write-Access-Policy-${AWS::StackName}'
-      Description: 'Managed policy that allows write access to the S3 bucket used for the Serverless-Security-System'
+      Description: 'Managed policy that allows write (and limited read) access to the S3 bucket used for the Serverless-Security-System'
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
+          - Effect: Deny
+            Action: [ 's3:Delete*' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
           - Effect: Allow
             Action: [ 's3:PutObject', 's3:PutObjectAcl' ]
-            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/footage/*'
+          - Effect: Deny
+            Action: [ 's3:Put*' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+          - Effect: Allow
+            Action: [ 's3:GetObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+          - Effect: Deny
+            Action: [ 's3:Put*' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+
+  # Ensure the S3 bucket has permissions to invoke the upload-handler lambda function
+  LambdaS3BucketEventPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:invokeFunction
+      SourceAccount: !Ref 'AWS::AccountId'
+      FunctionName: !Ref UploadHandlerLambdaFn
+      SourceArn: !GetAtt S3Bucket.Arn
+      Principal: s3.amazonaws.com
 
   IAMUser:
     Type: AWS::IAM::User
@@ -27,7 +66,7 @@ Resources:
       UserName: !Sub '${AWS::StackName}-client-user'
       Path: '/apps/'
       ManagedPolicyArns: 
-        - !Ref S3BucketUploadOnlyAccessManagedPolicy
+        - !Ref S3BucketClientAccessManagedPolicy
       Tags: 
         - Key: 'Description'
           Value: 'IAM User for accessing S3 bucket for Serverless-Security-System.'
@@ -57,13 +96,291 @@ Resources:
       Description: !Sub 'Access Key Secret for ${IAMUser} user'
       SecretString: !Sub '{"AccessKeyId":"${IAMUserAccessKey}","SecretAccessKey":"${IAMUserAccessKey.SecretAccessKey}"}'
 
-  S3Bucket:
-    Type: AWS::S3::Bucket
-    DeletionPolicy: Retain
 
+
+
+  # Serverless API composed of a lambda function, dynamodb (for remembering users and their access pins)
+  UserDynamoTable:
+    Type: AWS::DynamoDB::Table
+    Properties: 
+      BillingMode: PROVISIONED # TODO - consider switching to PAY_PER_REQUEST
+      ProvisionedThroughput: 
+        ReadCapacityUnits: 3
+        WriteCapacityUnits: 3
+      AttributeDefinitions: 
+        - AttributeName: name
+          AttributeType: S
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: name
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: TokenIndex
+          KeySchema: 
+            - AttributeName: token
+              KeyType: HASH
+          Projection: 
+            ProjectionType: ALL
+          ProvisionedThroughput: 
+            ReadCapacityUnits: 3
+            WriteCapacityUnits: 3
+
+  APILambdaFnAccessManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: 'Managed policy that allows appropriate access to various AWS resources for the Serverless-Security-System servless API.'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:ListObjects*', 's3:ListBucket' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+          - Effect: Allow
+            Action: [ 's3:PutObject', 's3:PutObjectAcl' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+          - Effect: Allow
+            Action: [ 's3:Describe*', 's3:Get*' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+          - Effect: Allow
+            Action: [ 'lambda:UpdateFunctionConfiguration' ]
+            Resource: !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${AWS::StackName}-api'
+          - Effect: Allow
+            Action: [ 'dynamodb:Get*', 'dynamodb:Scan', 'dynamodb:PutItem', 'dynamodb:DeleteItem' ]
+            Resource: !Sub 'arn:aws:dynamodb:*:*:table/${UserDynamoTable}'
+          - Effect: Allow
+            Action: [ 'dynamodb:Query' ]
+            Resource: !Sub 'arn:aws:dynamodb:*:*:table/${UserDynamoTable}/index/*'
+
+  APIFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub 'Role for the lambda functions that make up the serverless API for ${AWS::StackName}'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - !Ref APILambdaFnAccessManagedPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+
+  APILambdaFn:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-api' # Do not change this without updating APILambdaFnAccessManagedPolicy's reference
+      CodeUri: lambda/api/
+      Handler: index.handler
+      Runtime: python3.8
+      PackageType: Zip
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+          USERS_TABLE: !Ref UserDynamoTable
+          PRESIGN_URL_EXPIRATION_TIME: !Ref PresignUrlExpirationTime
+          USER_TOKEN_EXPIRATION_TIME: !Ref UserTokenExpirationTime
+          FUNCTION_NAME: !Sub '${AWS::StackName}-api'
+      Role: !GetAtt APIFunctionRole.Arn
+      Timeout: 10
+      FunctionUrlConfig: # Necessary for outputing APIUrlEndpoint (needed for frontend)
+        AuthType: NONE
+
+
+
+
+
+  # The various resources for a Lambda function that processes uploads - This is used for updating client information (if a client is online, offline, last-known IP address, etc.)
+
+  UploadHandlerLambdaFnAccessManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: 'Managed policy that allows appropriate access to S3 for the Serverless-Security-System to handle file uploads and manage client data.'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:ListObjects*', 's3:ListBucket' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+          - Effect: Allow
+            Action: [ 's3:PutObject', 's3:PutObjectAcl' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+          - Effect: Allow
+            Action: [ 's3:Describe*', 's3:Get*' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+  UploadHandlerFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: !Sub 'Role for the lambda functions that make up the serverless API for ${AWS::StackName}'
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      ManagedPolicyArns: 
+        - !Ref UploadHandlerLambdaFnAccessManagedPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: /
+
+  UploadHandlerLambdaFn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-client-upload-handler'
+      Handler: index.handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+      Role: !GetAtt UploadHandlerFunctionRole.Arn
+      Timeout: 10
+      Code:
+        S3Bucket: !Ref StackS3Bucket
+        S3Key: !Ref UploadHandlerFunctionS3Key
+
+   # These resources are needed to add an event "notification" that triggers UploadHandlerLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
+  # From: https://aws.amazon.com/blogs/mt/resolving-circular-dependency-in-provisioning-of-amazon-s3-buckets-with-aws-lambda-event-notifications/
+  ApplyNotificationFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Path: / # TODO - see if this is needed
+      Policies:
+        - PolicyName: S3BucketNotificationPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowBucketNotification
+                Effect: Allow
+                Action: s3:PutBucketNotification
+                Resource:
+                  - !Sub 'arn:aws:s3:::${S3Bucket}'
+                  - !Sub 'arn:aws:s3:::${S3Bucket}/*'
+
+  AttachLambdaS3NotificationTrigger:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Attach S3 event (notification) as the lambda function trigger for the client upload handler function.
+      Handler: index.handler
+      Runtime: python3.9
+      Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
+      Timeout: 240
+      Code:
+        ZipFile: |
+          import boto3
+          import logging
+          import json
+          import cfnresponse
+
+          s3Client = boto3.client('s3')
+          logger = logging.getLogger()
+          logger.setLevel(logging.DEBUG)
+          VIDEO_UPLOAD_FOLDER_NAME='footage/'
+
+          def addBucketNotification(bucketName, notificationId, functionArn):
+            notificationResponse = s3Client.put_bucket_notification_configuration(
+                Bucket=bucketName,
+                NotificationConfiguration={
+                    'LambdaFunctionConfigurations': [
+                        {
+                            'Id': notificationId,
+                            'LambdaFunctionArn': functionArn,
+                            'Events': [ 's3:ObjectCreated:*' ],
+                            'Filter': {
+                                'Key': {
+                                    'FilterRules': [
+                                        {
+                                            'Name': 'prefix',
+                                            'Value': VIDEO_UPLOAD_FOLDER_NAME
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                    
+                }
+            )
+            return notificationResponse
+
+          def create(properties, physical_id):
+            bucketName = properties['S3Bucket']
+            notificationId = properties['NotificationId']
+            functionArn = properties['FunctionARN']
+            response = addBucketNotification(bucketName, notificationId, functionArn)
+            logger.info('AddBucketNotification response: %s' % json.dumps(response))
+            return cfnresponse.SUCCESS, physical_id
+
+          def update(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def delete(properties, physical_id):
+            return cfnresponse.SUCCESS, None
+
+          def handler(event, context):
+            logger.info('Received event: %s' % json.dumps(event))
+
+            status = cfnresponse.FAILED
+            new_physical_id = None
+
+            try:
+              properties = event.get('ResourceProperties')
+              physical_id = event.get('PhysicalResourceId')
+
+              status, new_physical_id = {
+                'Create': create,
+                'Update': update,
+                'Delete': delete
+              }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
+            except Exception as e:
+              logger.error('Exception: %s' % e)
+              status = cfnresponse.FAILED
+            finally:
+              cfnresponse.send(event, context, status, {}, new_physical_id)
+
+  # This is what invoke's the AttachLambdaS3NotificationTrigger lambda function - attaching the s3 bucket event (notifications) as a trigger for the lambda function
+  InvokeS3EventLambdaTriggerFn:
+    Type: Custom::InvokeS3EventLambdaTriggerFn
+    Properties:
+      ServiceToken: !GetAtt AttachLambdaS3NotificationTrigger.Arn
+      S3Bucket: !Ref S3Bucket
+      FunctionARN: !GetAtt UploadHandlerLambdaFn.Arn
+      NotificationId: S3ObjectCreatedEvent
 
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
+
+  APIUrlEndpoint:
+    Value: !GetAtt APILambdaFnUrl.FunctionUrl
+    Description: The serverless API URL
 
