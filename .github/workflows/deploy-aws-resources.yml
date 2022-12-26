@@ -21,11 +21,13 @@ env:
 
 
 jobs:
-   deploy:
+  deploy-management-stack:
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./cloud
+    outputs:
+      STACK_MANAGEMENT_BUCKET: ${{ steps.deploy_stack.outputs.bucket_name }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -37,13 +39,33 @@ jobs:
           aws-region: ${{ env.REGION }}
       
       - name: Deploy management-bucket stack
+        id: deploy_stack
         run: |
           MANAGEMENT_BUCKET_STACK_NAME="$STACK_NAME-management-bucket-stack"
 
           sam deploy --region $REGION -t management-stack.template.yml --stack-name $MANAGEMENT_BUCKET_STACK_NAME
           STACK_MANAGEMENT_BUCKET=$(aws cloudformation describe-stacks --stack-name=$MANAGEMENT_BUCKET_STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
-          echo "STACK_MANAGEMENT_BUCKET=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_ENV
-          
+
+          echo "BUCKET_NAME=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_OUTPUT
+
+  upload-lambda-source-code:
+    needs: deploy-management-stack
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
+    environment:
+      STACK_MANAGEMENT_BUCKET: ${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+      
       - name: Upload serverless api lambda function source code (to S3)
         run: |
           cd lambda/api
@@ -68,10 +90,29 @@ jobs:
           zip tmp.zip requirements.txt *.py
           aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY
 
+  deploy:
+    needs: [deploy-management-stack, upload-lambda-source-code]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
+    environment:
+      STACK_MANAGEMENT_BUCKET: ${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
       - name: Deploy Security System stack
         run: |
           sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_MANAGEMENT_BUCKET --parameter-overrides "StackManagementS3Bucket=$STACK_MANAGEMENT_BUCKET" "APILambdaFnS3Key=$API_LAMBDA_FN_S3_KEY" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY" "AttachLambdaS3NotificationTriggerFunctionS3Key=$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY" "StaleVideoRemoverFunctionS3Key=$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY"
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
 
-          aws s3 cp settings.json s3://$BUCKET/configuration/
+      - name: Upload system configuration file
+        run: aws s3 cp settings.json s3://$BUCKET/configuration/
 
