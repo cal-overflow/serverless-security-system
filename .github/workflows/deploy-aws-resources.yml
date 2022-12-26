@@ -16,6 +16,7 @@ env:
   STACK_NAME: test-system # TODO - change back
   BUCKET_STACK_NAME: security-system-stack-bucket
   UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler.zip
+  ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger.zip
   STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY: lambda/video_purger.zip
 
 
@@ -47,6 +48,12 @@ jobs:
           zip tmp.zip requirements.txt *.py
           aws s3 cp tmp.zip s3://$STACK_BUCKET/$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY
 
+      - name: Upload attach-s3-notifcation-to-lambda lambda function source code (to S3)
+        run: |
+          cd lambda/attach_s3_upload_event_upload_handler_trigger
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_BUCKET/$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY
+
       - name: Upload stale-video-remover lambda function source code (to S3)
         run: |
           cd lambda/video_purger
@@ -55,7 +62,7 @@ jobs:
 
       - name: Deploy Security System stack
         run: |
-          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY" "StaleVideoRemoverFunctionS3Key=$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY"
+          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_BUCKET --parameter-overrides "StackS3Bucket=$STACK_BUCKET" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY" "AttachLambdaS3NotificationTriggerFunctionS3Key=$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY" "StaleVideoRemoverFunctionS3Key=$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY"
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
 
           aws s3 cp settings.json s3://$BUCKET/configuration/
