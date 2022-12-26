@@ -21,6 +21,7 @@ def get_files(prefix, suffix=''):
     pages = paginator.paginate(Bucket=BUCKET, Prefix=prefix)
 
     for page in pages:
+        print(page)
         for obj_data in page['Contents']:
             if not obj_data['Key'].endswith(suffix):
                 continue
