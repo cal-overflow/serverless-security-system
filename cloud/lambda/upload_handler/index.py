@@ -28,9 +28,9 @@ def handler(event, context):
     client_object_key = f'configuration/clients/{client["id"]}.json'
 
     try:
-        s3_client.download_file(BUCKET, client_object_key, './tmp/client.json')
+        s3_client.download_file(BUCKET, client_object_key, '/tmp/client.json')
         
-        with open('./tmp/client.json') as client_file:
+        with open('/tmp/client.json') as client_file:
             existing_client_data = json.load(client_file)
 
         client = {
@@ -40,9 +40,9 @@ def handler(event, context):
     except:
         pass
 
-    with open('./tmp/client.json', 'w') as updated_client_file:
+    with open('/tmp/client.json', 'w') as updated_client_file:
         json.dump(client, updated_client_file)
 
-    s3_client.upload_file('./tmp/client.json', BUCKET, client_object_key)
+    s3_client.upload_file('/tmp/client.json', BUCKET, client_object_key)
 
 
