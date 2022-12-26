@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: security-system-test-12345 # TODO - change back
+  STACK_NAME: security-system-test-54321 # TODO - change back
   BUCKET_STACK_NAME: security-system-stack-bucket
   UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler.zip
 
