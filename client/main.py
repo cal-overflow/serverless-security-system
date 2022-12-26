@@ -36,6 +36,7 @@ def sync_configuration():
 
 
 if __name__ == '__main__':
+    create_folder('config')
     sync_configuration()
 
     camera = Camera()

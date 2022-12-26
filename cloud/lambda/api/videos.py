@@ -8,18 +8,24 @@ import time
 BUCKET = os.environ.get('S3_BUCKET')
 PRESIGN_URL_EXPIRATION_TIME = int(os.environ.get('PRESIGN_URL_EXPIRATION_TIME'))
 today = datetime.date.today()
+current_hour = int(today.strftime('%H'))
 s3_client = boto3.client('s3')
 
 # Helper functions
-def get_files_in_folder(folder, suffix=''):
-    '''Get all files in a given folder. Optionally, a suffix can be used to filter the results.'''
+def get_files(prefix, suffix=''):
+    '''Get all files with the given prefix. Optionally, a suffix can be used to filter the results.'''
+
     files = []
 
-    # TODO - pagination for when there is more than 1000 objects
-    response = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=folder)
+    paginator = s3_client.get_paginator('list_objects_v2')
+    print(f'getting items with prefix: {prefix}')
+    pages = paginator.paginate(Bucket=BUCKET, Prefix=prefix)
 
-    if response is not None and 'Contents' in response.keys():
-        for obj_data in response['Contents']:
+    for page in pages:
+        if 'Contents' not in page.keys():
+            continue
+
+        for obj_data in page['Contents']:
             if not obj_data['Key'].endswith(suffix):
                 continue
 
@@ -35,13 +41,16 @@ def get_files_in_folder(folder, suffix=''):
     return files
 
 
-def get_videos_with_motion(requested_date, camera_filter=''):
-    '''Get a list of all videos with motion in a given date. Optionally, a camera name can be used as a suffix to filter the results.'''
+def get_videos_with_motion(requested_date, requested_hours, camera_filter=''):
+    '''Get a list of all videos with motion in a given date and within the requested hours. Optionally, a camera name can be used as a suffix to filter the results.'''
     date_folder = requested_date.strftime('%Y-%m/%d')
-    folder = f'footage/activity/{date_folder}'
     camera_suffix = f'{camera_filter}.mp4'
 
-    videos = get_files_in_folder(folder, camera_suffix)
+    videos = []
+
+    for hour in requested_hours:
+        folder = f'footage/activity/{date_folder}/{hour:02d}'
+        videos += get_files(folder, camera_suffix)
 
     for video in videos:
         video_start_time, camera_name = video['filename'][:-4].split('_')
@@ -53,13 +62,16 @@ def get_videos_with_motion(requested_date, camera_filter=''):
     return videos
 
 
-def get_videos_without_motion(requested_date, camera_filter):
-    '''Get a list of all videos without motion in a given date. Optionally, a camera name can be used as a suffix to filter the results.'''
+def get_videos_without_motion(requested_date, requested_hours, camera_filter):
+    '''Get a list of all videos without motion in a given date and within the requested hours. Optionally, a camera name can be used as a suffix to filter the results.'''
     date_folder = requested_date.strftime('%Y-%m/%d')
-    folder = f'footage/normal/{date_folder}'
     camera_suffix = f'{camera_filter}.mp4'
 
-    videos = get_files_in_folder(folder, camera_suffix)
+    videos = []
+
+    for hour in requested_hours:
+        folder = f'footage/normal/{date_folder}/{hour:02d}'
+        videos += get_files(folder, camera_suffix)
 
     for video in videos:
         video_start_time, camera_name = video['filename'][:-4].split('_')
@@ -71,13 +83,13 @@ def get_videos_without_motion(requested_date, camera_filter):
     return videos
 
 
-# Video
 def get_videos(event, _):
     videos = []
 
     # default query parameters
     requested_date = today
     requested_camera = ''
+    requested_hours = list(range(0, 24))
 
     query_parameters = event.get('queryStringParameters', None)
 
@@ -86,19 +98,29 @@ def get_videos(event, _):
             requested_date = datetime.datetime.strptime(query_parameters['date'], '%Y-%m-%d')
         if 'camera' in query_parameters.keys():
             requested_camera = query_parameters['camera']
+        if 'hours' in query_parameters.keys():
+            requested_hours_str = query_parameters['hours'].split('-')
+            if len(requested_hours_str) != 2:
+                return { 'statusCode': 400, 'body': json.dumps('Invalid hours parameter') }
+
+            start_hour = int(requested_hours_str[0])
+            end_hour = int(requested_hours_str[1])
+
+            requested_hours = list(range(start_hour, end_hour + 1))
+
     
     if event['rawPath'].endswith('/all'):
-        videos_with_motion = get_videos_with_motion(requested_date, requested_camera)
-        videos_without_motion = get_videos_without_motion(requested_date, requested_camera)
+        videos_with_motion = get_videos_with_motion(requested_date, requested_hours, requested_camera)
+        videos_without_motion = get_videos_without_motion(requested_date, requested_hours, requested_camera)
 
         videos = videos_with_motion + videos_without_motion
         videos = sorted(videos, key=lambda video: video['time'])
 
     elif event['rawPath'].endswith('/motion'):
-        videos = get_videos_with_motion(requested_date, requested_camera)
+        videos = get_videos_with_motion(requested_date, requested_hours, requested_camera)
 
     elif event['rawPath'].endswith('/motionless'):
-        videos = get_videos_with_motion(requested_date, requested_camera)
+        videos = get_videos_with_motion(requested_date, requested_hours, requested_camera)
 
     
 

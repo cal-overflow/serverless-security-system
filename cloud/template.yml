@@ -3,14 +3,27 @@ Transform: 'AWS::Serverless-2016-10-31'
 Description: "AWS resources for a serverless security system"
 
 Parameters:
-  StackS3Bucket:
+  StackManagementS3Bucket:
     Type: String
     Description: The name of the stack S3 bucket (for storing lambda source code)
+
+  APILambdaFnS3Key:
+    Type: String
+    Description: The object key of the source code for the Serverless API lambda function.
+
+  StaleVideoRemoverFunctionS3Key:
+    Type: String
+    Description: The object key of the source code for the StaleVideoRemoverLambdaFn lambda function.
 
   UploadHandlerFunctionS3Key:
     Type: String
     Description: The object key of the source code for the UploadHandlerLambdaFn lambda function.
 
+  AttachLambdaS3NotificationTriggerFunctionS3Key:
+    Type: String
+    Description: The object key of the source code for the AttachLambdaS3NotificationTriggerLambdaFn lambda function.
+
+  # Optional parameters
   PresignUrlExpirationTime:
     Type: Number
     Description: The number (in seconds) that presigned url's are valid for. Note that this can is the default and can be later updated within the user interface.
@@ -151,6 +164,9 @@ Resources:
           - Effect: Allow
             Action: [ 'dynamodb:Query' ]
             Resource: !Sub 'arn:aws:dynamodb:*:*:table/${UserDynamoTable}/index/*'
+          - Effect: Allow
+            Action: [ 'lambda:InvokeFunction' ]
+            Resource: !GetAtt StaleVideoRemoverLambdaFn.Arn
 
   APIFunctionRole:
     Type: AWS::IAM::Role
@@ -180,7 +196,10 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: !Sub '${AWS::StackName}-api' # Do not change this without updating APILambdaFnAccessManagedPolicy's reference
-      CodeUri: lambda/api/
+      # CodeUri: lambda/api/
+      CodeUri: 
+        Bucket: !Ref StackManagementS3Bucket
+        Key: !Ref APILambdaFnS3Key
       Handler: index.handler
       Runtime: python3.8
       PackageType: Zip
@@ -191,12 +210,82 @@ Resources:
           PRESIGN_URL_EXPIRATION_TIME: !Ref PresignUrlExpirationTime
           USER_TOKEN_EXPIRATION_TIME: !Ref UserTokenExpirationTime
           FUNCTION_NAME: !Sub '${AWS::StackName}-api'
+          VIDEO_PURGER_FUNCTION_NAME: !Ref StaleVideoRemoverLambdaFn
       Role: !GetAtt APIFunctionRole.Arn
-      Timeout: 10
-      FunctionUrlConfig: # Necessary for outputing APIUrlEndpoint (needed for frontend)
+      Timeout: 30
+      FunctionUrlConfig: # Necessary for outputing APIUrl (needed for frontend)
         AuthType: NONE
 
 
+
+  # The various resources required for auto-deleting old (motionless) videos with a Lambda function. The function is triggered daily.
+  StaleVideoRemoverLambdaFnAccessManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: 'Managed policy that allows appropriate access to S3 for the Serverless-Security-System to purge stale video files.'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: [ 's3:ListObjects*', 's3:ListBucket', 's3:GetObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+          - Effect: Allow
+            Action: [ 's3:ListObjects*', 's3:ListBucket', 's3:GetObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+          - Effect: Allow
+            Action: [ 's3:DeleteObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/footage/normal/*'
+          - Effect: Deny
+            Action: [ 's3:Put*', 's3:DeleteObject' ]
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/configuration/*'
+
+  StaleVideoRemoverFunctionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - !Ref StaleVideoRemoverLambdaFnAccessManagedPolicy
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  StaleVideoRemoverLambdaFn:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${AWS::StackName}-stale-video-remover'
+      Handler: index.handler
+      Runtime: python3.8
+      Environment:
+        Variables:
+          S3_BUCKET: !Ref S3Bucket
+      Role: !GetAtt StaleVideoRemoverFunctionRole.Arn
+      Timeout: 15
+      Code:
+        S3Bucket: !Ref StackManagementS3Bucket
+        S3Key: !Ref StaleVideoRemoverFunctionS3Key
+
+
+  DailyTriggerEvent:
+    Type: AWS::Events::Rule
+    Properties: 
+      Name: !Sub '${AWS::StackName}-stale-video-remover-lambda-fn-daily-trigger'
+      Description: !Sub 'A cloudwatch event that triggers the stale video remover lambda function in ${AWS::StackName}'
+      ScheduleExpression: cron(0 0 * * ? *) # Every day at 00:00
+      Targets: 
+        - Id: VideoRemoverLambdaFn
+          Arn: !GetAtt StaleVideoRemoverLambdaFn.Arn
+
+  DailyTriggerEventLambdaInvocationPermission: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref StaleVideoRemoverLambdaFn
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt DailyTriggerEvent.Arn
 
 
 
@@ -255,7 +344,7 @@ Resources:
       Role: !GetAtt UploadHandlerFunctionRole.Arn
       Timeout: 10
       Code:
-        S3Bucket: !Ref StackS3Bucket
+        S3Bucket: !Ref StackManagementS3Bucket
         S3Key: !Ref UploadHandlerFunctionS3Key
 
    # These resources are needed to add an event "notification" that triggers UploadHandlerLambdaFn every time S3 event occurs (i.e., file upload) - this is needed because without it circular dependencies occur
@@ -285,7 +374,7 @@ Resources:
                   - !Sub 'arn:aws:s3:::${S3Bucket}'
                   - !Sub 'arn:aws:s3:::${S3Bucket}/*'
 
-  AttachLambdaS3NotificationTrigger:
+  AttachLambdaS3NotificationTriggerFn:
     Type: AWS::Lambda::Function
     Properties:
       Description: Attach S3 event (notification) as the lambda function trigger for the client upload handler function.
@@ -294,83 +383,15 @@ Resources:
       Role: !GetAtt 'ApplyNotificationFunctionRole.Arn'
       Timeout: 240
       Code:
-        ZipFile: |
-          import boto3
-          import logging
-          import json
-          import cfnresponse
+        S3Bucket: !Ref StackManagementS3Bucket
+        S3Key: !Ref AttachLambdaS3NotificationTriggerFunctionS3Key
 
-          s3Client = boto3.client('s3')
-          logger = logging.getLogger()
-          logger.setLevel(logging.DEBUG)
-          VIDEO_UPLOAD_FOLDER_NAME='footage/'
-
-          def addBucketNotification(bucketName, notificationId, functionArn):
-            notificationResponse = s3Client.put_bucket_notification_configuration(
-                Bucket=bucketName,
-                NotificationConfiguration={
-                    'LambdaFunctionConfigurations': [
-                        {
-                            'Id': notificationId,
-                            'LambdaFunctionArn': functionArn,
-                            'Events': [ 's3:ObjectCreated:*' ],
-                            'Filter': {
-                                'Key': {
-                                    'FilterRules': [
-                                        {
-                                            'Name': 'prefix',
-                                            'Value': VIDEO_UPLOAD_FOLDER_NAME
-                                        }
-                                    ]
-                                }
-                            }
-                        }
-                    ]
-                    
-                }
-            )
-            return notificationResponse
-
-          def create(properties, physical_id):
-            bucketName = properties['S3Bucket']
-            notificationId = properties['NotificationId']
-            functionArn = properties['FunctionARN']
-            response = addBucketNotification(bucketName, notificationId, functionArn)
-            logger.info('AddBucketNotification response: %s' % json.dumps(response))
-            return cfnresponse.SUCCESS, physical_id
-
-          def update(properties, physical_id):
-            return cfnresponse.SUCCESS, None
-
-          def delete(properties, physical_id):
-            return cfnresponse.SUCCESS, None
-
-          def handler(event, context):
-            logger.info('Received event: %s' % json.dumps(event))
-
-            status = cfnresponse.FAILED
-            new_physical_id = None
-
-            try:
-              properties = event.get('ResourceProperties')
-              physical_id = event.get('PhysicalResourceId')
-
-              status, new_physical_id = {
-                'Create': create,
-                'Update': update,
-                'Delete': delete
-              }.get(event['RequestType'], lambda x, y: (cfnresponse.FAILED, None))(properties, physical_id)
-            except Exception as e:
-              logger.error('Exception: %s' % e)
-              status = cfnresponse.FAILED
-            finally:
-              cfnresponse.send(event, context, status, {}, new_physical_id)
 
   # This is what invoke's the AttachLambdaS3NotificationTrigger lambda function - attaching the s3 bucket event (notifications) as a trigger for the lambda function
   InvokeS3EventLambdaTriggerFn:
     Type: Custom::InvokeS3EventLambdaTriggerFn
     Properties:
-      ServiceToken: !GetAtt AttachLambdaS3NotificationTrigger.Arn
+      ServiceToken: !GetAtt AttachLambdaS3NotificationTriggerFn.Arn
       S3Bucket: !Ref S3Bucket
       FunctionARN: !GetAtt UploadHandlerLambdaFn.Arn
       NotificationId: S3ObjectCreatedEvent
@@ -380,7 +401,7 @@ Outputs:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
 
-  APIUrlEndpoint:
+  APIUrl:
     Value: !GetAtt APILambdaFnUrl.FunctionUrl
     Description: The serverless API URL
 

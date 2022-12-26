@@ -28,6 +28,10 @@ def handler(event, context):
     authenticated_user = get_authenticated_user(event, context)
     event['authenticated_user'] = authenticated_user
 
+
+    if event['rawPath'] == '/':
+        return { 'statusCode': 200 }
+
     # below API calls require authentication
     if authenticated_user is None:
         return { 'statusCode': 401 }

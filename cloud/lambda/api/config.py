@@ -7,6 +7,7 @@ USERS_TABLE = os.environ.get('USERS_TABLE')
 PRESIGN_URL_EXPIRATION_TIME = int(os.environ.get('PRESIGN_URL_EXPIRATION_TIME'))
 USER_TOKEN_EXPIRATION_TIME = os.environ.get('USER_TOKEN_EXPIRATION_TIME')
 FUNCTION_NAME = os.environ.get('FUNCTION_NAME')
+VIDEO_PURGER_FUNCTION_NAME = os.environ.get('VIDEO_PURGER_FUNCTION_NAME')
 SETTINGS_FILE_KEY = "configuration/settings.json"
 
 
@@ -45,9 +46,15 @@ def update_config(event, _):
         return { 'statusCode': 400 }
     if type(new_configuration['presign_url_expiration_time']) != int:
         return { 'statusCode': 400 }
-
+    if type(new_configuration['default_motion_threshold']) != int:
+        return { 'statusCode': 400 }
+    if type(new_configuration['days_to_keep_motionless_videos']) != int:
+        return { 'statusCode': 400 }
 
     s3_client = boto3.client('s3')
+
+    old_configuration = json.loads(get_config(event, _)['body'])
+
     lambda_client = boto3.client('lambda')
 
     lambda_client.update_function_configuration(
@@ -59,12 +66,26 @@ def update_config(event, _):
                     'PRESIGN_URL_EXPIRATION_TIME': str(new_configuration['presign_url_expiration_time']),
                     'USER_TOKEN_EXPIRATION_TIME': USER_TOKEN_EXPIRATION_TIME,
                     'FUNCTION_NAME': FUNCTION_NAME,
+                    'VIDEO_PURGER_FUNCTION_NAME': VIDEO_PURGER_FUNCTION_NAME,
                 }
             }
         )
     
     del new_configuration['presign_url_expiration_time']
 
+
+    if new_configuration['days_to_keep_motionless_videos'] < old_configuration['days_to_keep_motionless_videos']:
+        delete_old_footage_response = lambda_client.invoke(
+            FunctionName=VIDEO_PURGER_FUNCTION_NAME,
+            Payload=json.dumps({
+                'previous_config': old_configuration,
+                'new_config': new_configuration
+            }),
+        )
+
+        if delete_old_footage_response['statusCode'] != 200:
+            return { 'statusCode': 500, 'body': json.dumps('Something went wrong when updating the `days_to_keep_motionless_videos`. The configuration failed to update.') }
+    
     with open('/tmp/output.json', 'w') as output_file:
         json.dump(new_configuration, output_file)
 

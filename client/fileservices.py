@@ -55,8 +55,6 @@ def upload_videos(folder, camera_id):
 def get_and_parse_settings_files(camera_id):
     '''Get the system settings and camera settings files from the s3 bucket. Returns a dictionary representing the settings.'''
 
-    create_folder('config')
-
     s3.download_file(S3_BUCKET, SYSTEM_SETTINGS_FILE_KEY, LOCAL_SYSTEM_SETTINGS_FILE)
 
     with open(LOCAL_SYSTEM_SETTINGS_FILE) as settings_file:

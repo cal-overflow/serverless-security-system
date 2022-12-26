@@ -7,6 +7,7 @@ The various endpoints are documented below. Note that these are rough notes and 
 ## Videos (footage)
 All `/videos` endpoints accept the following query parameters:
 - `date` -  A specific day to filter. Defaults to the current date (for wherever the the Lambda function is running).
+- `hours` - A range of hours to filter. Defaults to hours 0 through 23, which can result in a slow response time.
 - `camera` - A specific camera (client) id to filter.
 
 ### GET `/videos/all`
@@ -50,10 +51,12 @@ Returns the system configuration. \
 Example response:
 ```json
 {
-    "is_motion_outlined": false,
-    "clip_length": 60,
-    "clips_per_upload": 1,
-    "presign_url_expiration_time": 3600
+  "is_motion_outlined": false,
+  "clip_length": 60,
+  "clips_per_upload": 1,
+  "presign_url_expiration_time": 3600,
+  "default_motion_threshold": 5000,
+  "days_to_keep_motionless_videos": 90
 }
 ```
 
