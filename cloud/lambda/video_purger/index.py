@@ -18,7 +18,7 @@ def config_update_handler(previous_config, new_config):
     for n in list(range(new_config['days_to_keep_motionless_videos'], previous_config['days_to_keep_motionless_videos'] + 1)):
         day_to_remove = today - timedelta(days=n)
         month_folder = f'footage/normal/{day_to_remove.strftime("%Y-%m")}'
-        folder = f'month_folder/{day_to_remove.strftime("%d")}'
+        folder = f'{month_folder}/{day_to_remove.strftime("%d")}'
         folders_to_remove.append(folder)
 
         paginator = s3_client.get_paginator('list_objects_v2')
@@ -29,11 +29,14 @@ def config_update_handler(previous_config, new_config):
                 continue
 
             for obj_data in page['Contents']:
+                print(f"deleting: {obj_data['Key']}")
                 s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
+        print(f'deleting: {folder}')
         s3_client.delete_object(Bucket=BUCKET, Key=folder)
 
         res = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=month_folder)
         if res['KeyCount'] == 1:
+            print(f'deleting: {month_folder}')
             s3_client.delete_object(Bucket=BUCKET, Key=month_folder)
 
 
@@ -50,7 +53,8 @@ def handler(event, _):
         config = json.load(settings_file)
 
     cutoff_date = today - timedelta(days=(config['days_to_keep_motionless_videos'] + 1))
-    folder_to_delete = f'footage/normal/{cutoff_date.strftime("%Y-%m/%d")}'
+    month_folder = f'footage/normal/{cutoff_date.strftime("%Y-%m")}'
+    folder_to_delete = f'{month_folder}/{cutoff_date.strftime("/%d")}'
 
 
     paginator = s3_client.get_paginator('list_objects_v2')
@@ -61,9 +65,12 @@ def handler(event, _):
             continue
 
         for obj_data in page['Contents']:
+            print(f"deleting: {obj_data['Key']}")
             s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
+    print(f"deleting: {folder_to_delete}")
     s3_client.delete_object(Bucket=BUCKET, Key=folder_to_delete)
 
     res = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=month_folder)
     if res['KeyCount'] == 1:
+        print(f"deleting: {obj_data['Key']}")
         s3_client.delete_object(Bucket=BUCKET, Key=month_folder)
