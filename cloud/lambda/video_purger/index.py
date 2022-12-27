@@ -17,7 +17,8 @@ def config_update_handler(previous_config, new_config):
     folders_to_remove = []
     for n in list(range(new_config['days_to_keep_motionless_videos'], previous_config['days_to_keep_motionless_videos'] + 1)):
         day_to_remove = today - timedelta(days=n)
-        folder = f'footage/normal/{day_to_remove.strftime("%Y-%m/%d")}'
+        month_folder = f'footage/normal/{day_to_remove.strftime("%Y-%m")}'
+        folder = f'month_folder/{day_to_remove.strftime("%d")}'
         folders_to_remove.append(folder)
 
         paginator = s3_client.get_paginator('list_objects_v2')
@@ -30,6 +31,11 @@ def config_update_handler(previous_config, new_config):
             for obj_data in page['Contents']:
                 s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
         s3_client.delete_object(Bucket=BUCKET, Key=folder)
+
+        res = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=month_folder)
+        if res['KeyCount'] == 1:
+            s3_client.delete_object(Bucket=BUCKET, Key=month_folder)
+
 
     return { 'statusCode': 200 }
 
@@ -58,3 +64,6 @@ def handler(event, _):
             s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
     s3_client.delete_object(Bucket=BUCKET, Key=folder_to_delete)
 
+    res = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=month_folder)
+    if res['KeyCount'] == 1:
+        s3_client.delete_object(Bucket=BUCKET, Key=month_folder)
