@@ -75,15 +75,16 @@ def update_config(event, _):
 
 
     if new_configuration['days_to_keep_motionless_videos'] < old_configuration['days_to_keep_motionless_videos']:
-        delete_old_footage_response = lambda_client.invoke(
+        lambda_response = lambda_client.invoke(
             FunctionName=VIDEO_PURGER_FUNCTION_NAME,
             Payload=json.dumps({
                 'previous_config': old_configuration,
                 'new_config': new_configuration
             }),
         )
+        lambda_response_payload = json.loads(lambda_response['Payload'].read())
 
-        if delete_old_footage_response['statusCode'] != 200:
+        if lambda_response_payload['statusCode'] != 200:
             return { 'statusCode': 500, 'body': json.dumps('Something went wrong when updating the `days_to_keep_motionless_videos`. The configuration failed to update.') }
     
     with open('/tmp/output.json', 'w') as output_file:

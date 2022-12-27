@@ -10,6 +10,7 @@ SETTINGS_FILE_KEY = "configuration/settings.json"
 today = datetime.today()
 s3_client = boto3.client('s3')
 
+
 def config_update_handler(previous_config, new_config):
     '''Handle scenarios where the configuration is updated. This is invoked by the API when a user updates the days_to_keep_motionless_videos option'''
 
@@ -19,9 +20,16 @@ def config_update_handler(previous_config, new_config):
         folder = f'footage/normal/{day_to_remove.strftime("%Y-%m/%d")}'
         folders_to_remove.append(folder)
 
-    for folder in folders_to_remove:
-        s3_client.delete_object(Bucket=BUCKET, Key=folder)
+        paginator = s3_client.get_paginator('list_objects_v2')
+        pages = paginator.paginate(Bucket=BUCKET, Prefix=folder)
 
+        for page in pages:
+            if 'Contents' not in page.keys():
+                continue
+
+            for obj_data in page['Contents']:
+                s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
+        s3_client.delete_object(Bucket=BUCKET, Key=folder)
 
     return { 'statusCode': 200 }
 
@@ -38,5 +46,15 @@ def handler(event, _):
     cutoff_date = today - timedelta(days=(config['days_to_keep_motionless_videos'] + 1))
     folder_to_delete = f'footage/normal/{cutoff_date.strftime("%Y-%m/%d")}'
 
+
+    paginator = s3_client.get_paginator('list_objects_v2')
+    pages = paginator.paginate(Bucket=BUCKET, Prefix=folder_to_delete)
+
+    for page in pages:
+        if 'Contents' not in page.keys():
+            continue
+
+        for obj_data in page['Contents']:
+            s3_client.delete_object(Bucket=BUCKET, Key=obj_data['Key'])
     s3_client.delete_object(Bucket=BUCKET, Key=folder_to_delete)
 
