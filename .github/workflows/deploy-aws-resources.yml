@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - fix-auto-deploy-issues # TODO - remove
   workflow_dispatch:
 
 permissions:
