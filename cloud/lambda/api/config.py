@@ -86,6 +86,8 @@ def update_config(event, _):
 
         if lambda_response_payload['statusCode'] != 200:
             return { 'statusCode': 500, 'body': json.dumps('Something went wrong when updating the `days_to_keep_motionless_videos`. The configuration failed to update.') }
+    elif new_configuration['days_to_keep_motionless_videos'] > 365:
+        return { 'statusCode': 400, 'body': json.dumps('days_to_keep_motionless_videos should not be greater than 365. The configuration failed to update.') }
     
     with open('/tmp/output.json', 'w') as output_file:
         json.dump(new_configuration, output_file)

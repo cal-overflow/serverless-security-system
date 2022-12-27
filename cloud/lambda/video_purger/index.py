@@ -72,5 +72,5 @@ def handler(event, _):
 
     res = s3_client.list_objects_v2(Bucket=BUCKET, Prefix=month_folder)
     if res['KeyCount'] == 1:
-        print(f"deleting: {obj_data['Key']}")
+        print(f"deleting: {month_folder}")
         s3_client.delete_object(Bucket=BUCKET, Key=month_folder)
