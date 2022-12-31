@@ -54,7 +54,7 @@ def handler(event, _):
 
     cutoff_date = today - timedelta(days=(config['days_to_keep_motionless_videos'] + 1))
     month_folder = f'footage/normal/{cutoff_date.strftime("%Y-%m")}'
-    folder_to_delete = f'{month_folder}/{cutoff_date.strftime("/%d")}'
+    folder_to_delete = f'{month_folder}/{cutoff_date.strftime("%d")}'
 
 
     paginator = s3_client.get_paginator('list_objects_v2')
