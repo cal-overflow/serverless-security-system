@@ -219,6 +219,14 @@ Resources:
           AllowCredentials: False
           AllowOrigins:
             - '*' # TODO - make this reference the frontend cloudfront domain
+          AllowHeaders: 
+            - '*'
+          AllowMethods:
+            - 'GET'
+            - 'POST'
+            - 'PATCH'
+            - 'PUT'
+            - 'DELETE'
 
 
 
