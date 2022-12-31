@@ -48,13 +48,6 @@ export default {
     password: '',
     infoMessage: ''
   }),
-  asyncData({ redirect }) {
-    const accessToken = localStorage.getItem('accessToken');
-
-    if (accessToken) {
-      return redirect('/');
-    }
-  },
   methods: {
     submitLogin() {
       this.infoMessage = 'Loading...';
