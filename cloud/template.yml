@@ -215,6 +215,10 @@ Resources:
       Timeout: 30
       FunctionUrlConfig: # Necessary for outputing APIUrl (needed for frontend)
         AuthType: NONE
+        Cors:
+          AllowCredentials: False
+          AllowOrigins:
+            - '*' # TODO - make this reference the frontend cloudfront domain
 
 
 
