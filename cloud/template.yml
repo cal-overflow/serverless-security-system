@@ -453,7 +453,7 @@ Resources:
         DefaultRootObject: index.html
         Origins:
         - DomainName: !GetAtt FrontendS3Bucket.DomainName
-          Id: !Sub 's3origin-${FrontendS3Bucket}'
+          Id: !Sub 's3-origin-${FrontendS3Bucket}'
           S3OriginConfig:
             OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${FrontendCloudFrontOriginAccessIdentity}'
         ViewerCertificate:
