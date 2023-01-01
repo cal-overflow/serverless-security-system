@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./cloud
+        working-directory: ./cloud/ui
     steps:
       - name: Checkout repo
         uses: actions/checkout@master
@@ -137,7 +137,7 @@ jobs:
           node-version-file: .nvmrc
 
       - name: Install dependencies
-        run: npm install --prefer-offline --no-audit
+        run: npm ci --prefer-offline --no-audit
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
