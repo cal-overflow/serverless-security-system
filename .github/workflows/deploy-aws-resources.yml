@@ -138,6 +138,8 @@ jobs:
 
       - name: Bundle and upload system UI
         run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
+          echo "NUXT_ENV_API_URL=$API_URL" >> .env
           npm run generate
 
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendS3BucketName`].OutputValue' --output text)

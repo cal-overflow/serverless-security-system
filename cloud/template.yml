@@ -452,6 +452,12 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
             - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
           CachePolicyId: !Ref CachePolicyId
           TargetOriginId: !Sub 's3-origin-${FrontendS3Bucket}'
           Compress: true
