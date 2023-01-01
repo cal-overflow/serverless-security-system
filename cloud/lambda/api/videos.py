@@ -57,6 +57,7 @@ def get_videos_with_motion(requested_date, requested_hours, camera_filter=''):
         del video['filename']
         video['camera'] = camera_name
         video['time'] = video_start_time
+        video['date'] = video_start_time
         video['contains_motion'] = True
 
     return videos

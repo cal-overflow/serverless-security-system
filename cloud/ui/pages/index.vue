@@ -1,5 +1,10 @@
 <template>
-  <Tutorial />
+  <div>
+    <p class="text-4xl font-bold">Security System</p>
+    <video-feed type="motion" />
+    <client-overview />
+    <footer-bar />
+  </div>
 </template>
 
 <script>
@@ -17,6 +22,7 @@ export default {
     // check if token is valid (attempt to refresh)
     refreshToken()
     .catch(() => {
+      console.log('redirecting to login?')
       return redirect('/login');
     });
   }
