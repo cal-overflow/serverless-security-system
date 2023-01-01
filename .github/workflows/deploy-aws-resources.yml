@@ -126,9 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: cloud/ui/
-    env:
-      FRONTEND_BUCKET: ${{ needs.deploy-management-stack.outputs.FRONTEND_BUCKET }}
+        working-directory: ./cloud/ui
     steps:
       - name: Setup node
         uses: actions/setup-node@v2.1.5

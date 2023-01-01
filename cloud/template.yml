@@ -417,6 +417,20 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: "index.html"
         ErrorDocument: "200.html"
+
+  FrontendS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Action: 's3:GetObject'
+            Effect: Allow
+            Principal: '*' # TODO: see if this can be limited
+            Resource: 
+              - !Sub 'arn:aws:s3:::${FrontendS3Bucket}/*'
           
   FrontendCloudFrontOriginAccessIdentity:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
