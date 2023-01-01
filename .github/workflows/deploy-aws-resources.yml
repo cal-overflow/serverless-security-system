@@ -126,7 +126,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: cloud/ui
+        working-directory: cloud/ui/
     env:
       FRONTEND_BUCKET: ${{ needs.deploy-management-stack.outputs.FRONTEND_BUCKET }}
     steps:
