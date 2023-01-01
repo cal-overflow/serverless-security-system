@@ -418,7 +418,6 @@ Resources:
   FrontendS3Bucket:
     Type: AWS::S3::Bucket
     Properties:
-      BucketName: !Sub '${AWS::StackName}-ui'
       WebsiteConfiguration:
         IndexDocument: "index.html"
         ErrorDocument: "200.html"
@@ -426,7 +425,7 @@ Resources:
   FrontendS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
-      Bucket: !Ref S3Bucket
+      Bucket: !Ref FrontendS3Bucket
       PolicyDocument:
         Version: 2012-10-17
         Statement:
