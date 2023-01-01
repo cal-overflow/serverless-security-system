@@ -148,18 +148,18 @@ jobs:
       - name: Bundle and upload system UI
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
-          echo "NUXT_ENV_API_URL=$API_URL" >> .env
+          API_URL_WITHOUT_TRAILING_SLASH=${API_URL:0:-1}
+          echo "NUXT_ENV_API_URL=$API_URL_WITHOUT_TRAILING_SLASH" >> .env
           npm run generate
 
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendS3BucketName`].OutputValue' --output text)
           aws s3 sync dist s3://$BUCKET
 
-
       - name: Generate Github Actions summary
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
-          FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendUrl`].OutputValue' --output text)
+          FRONTEND_DOMAIN=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendUrl`].OutputValue' --output text)
           echo "### System information :lock: :camera:" >> $GITHUB_STEP_SUMMARY
-          echo "Frontend: [$FRONTEND_URL]($FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend: [https://$FRONTEND_DOMAIN](https://$FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
           echo "API: [$API_URL]($API_URL)" >> $GITHUB_STEP_SUMMARY
 
