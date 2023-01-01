@@ -417,6 +417,34 @@ Resources:
       WebsiteConfiguration:
         IndexDocument: "index.html"
         ErrorDocument: "200.html"
+          
+  FrontendCloudFrontOriginAccessIdentity:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub 'Origin identity for ${FrontendS3Bucket.DomainName}'
+
+  FrontendCloudFrontDistro:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub 'A CloudFront distribution for the static frontend hosted in the ${FrontendS3Bucket} bucket.'
+        DefaultCacheBehavior:
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+          TargetOriginId: !Sub 's3-origin-${FrontendS3Bucket}'
+          Compress: true
+        Enabled: true
+        DefaultRootObject: index.html
+        Origins:
+        - DomainName: !GetAtt FrontendS3Bucket.DomainName
+          Id: !Sub 's3origin-${FrontendS3Bucket}'
+          S3OriginConfig:
+            OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${FrontendCloudFrontOriginAccessIdentity}'
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+
 
 Outputs:
   S3BucketName:
