@@ -485,6 +485,6 @@ Outputs:
     Description: The serverless API URL
 
   FrontendUrl:
-    Value: !GetAtt FrontendCloudFrontDistro.DomainName
+    Value: !Sub 'https://${FrontendCloudFrontDistro.DomainName}'
     Description: The URL of the frontend's cloudfront distribution.
 
