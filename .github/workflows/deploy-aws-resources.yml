@@ -49,13 +49,88 @@ jobs:
 
           echo "BUCKET_NAME=$STACK_MANAGEMENT_BUCKET" >> $GITHUB_OUTPUT
 
+  upload-source-code:
+    name: Upload Lambda source code
+    needs: deploy-management-stack
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
+    env:
+      STACK_MANAGEMENT_BUCKET: "${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+      
+      - name: Upload serverless api lambda function source code (to S3)
+        run: |
+          cd lambda/api
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$API_LAMBDA_FN_S3_KEY
+
+      - name: Upload upload-handler lambda function source code (to S3)
+        run: |
+          cd lambda/upload_handler
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY
+
+      - name: Upload attach-s3-notifcation-to-lambda lambda function source code (to S3)
+        run: |
+          cd lambda/attach_s3_upload_event_upload_handler_trigger
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY
+
+      - name: Upload stale-video-remover lambda function source code (to S3)
+        run: |
+          cd lambda/video_purger
+          zip tmp.zip requirements.txt *.py
+          aws s3 cp tmp.zip s3://$STACK_MANAGEMENT_BUCKET/$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY
+
+  deploy-system-stack:
+    name: Deploy System
+    needs: [deploy-management-stack, upload-source-code]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud
+    env:
+      STACK_MANAGEMENT_BUCKET: ${{ needs.deploy-management-stack.outputs.STACK_MANAGEMENT_BUCKET }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Deploy Security System stack
+        run: |
+          sam deploy --stack-name $STACK_NAME --region $REGION --s3-bucket $STACK_MANAGEMENT_BUCKET --parameter-overrides "StackManagementS3Bucket=$STACK_MANAGEMENT_BUCKET" "APILambdaFnS3Key=$API_LAMBDA_FN_S3_KEY" "UploadHandlerFunctionS3Key=$UPLOAD_HANDLER_LAMBDA_FN_S3_KEY" "AttachLambdaS3NotificationTriggerFunctionS3Key=$ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY" "StaleVideoRemoverFunctionS3Key=$STALE_VIDEO_REMOVER_LAMBDA_FN_S3_KEY"
+
+      - name: Upload system configuration file
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
+          aws s3 cp settings.json s3://$BUCKET/configuration/
+
   deploy-system-frontend:
     name: Deploy System UI
+    needs: [deploy-system-stack]
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./cloud
     steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
       - name: Setup node
         uses: actions/setup-node@v2.1.5
         with:
@@ -63,6 +138,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
 
       - name: Bundle and upload system UI
         run: |
