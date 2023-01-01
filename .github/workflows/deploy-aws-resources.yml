@@ -120,6 +120,32 @@ jobs:
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           aws s3 cp settings.json s3://$BUCKET/configuration/
 
+  deploy-system-frontend:
+    name: Deploy System UI
+    needs: [deploy-management-stack, upload-source-code]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud/ui
+    env:
+      FRONTEND_BUCKET: ${{ needs.deploy-management-stack.outputs.FRONTEND_BUCKET }}
+    steps:
+      - name: Setup node
+        uses: actions/setup-node@v2.1.5
+        with:
+          node-version-file: .nvmrc
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Bundle and upload system UI
+        run: |
+          npm run generate
+
+          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendS3BucketName`].OutputValue' --output text)
+          aws s3 sync dist s3://$BUCKET
+
+
       - name: Generate Github Actions summary
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)

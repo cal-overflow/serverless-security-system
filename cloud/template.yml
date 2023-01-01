@@ -408,10 +408,24 @@ Resources:
       FunctionARN: !GetAtt UploadHandlerLambdaFn.Arn
       NotificationId: S3ObjectCreatedEvent
 
+
+  # The below resources are for the frontend (site) for the system
+  FrontendS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${AWS::StackName}-ui'
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
+        ErrorDocument: "200.html"
+
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
+  
+  FrontendS3BucketName:
+    Value: !Ref FrontendS3Bucket
+    Description: The name of the stacks S3 bucket where the user interface is hosted.
 
   APIUrl:
     Value: !GetAtt APILambdaFnUrl.FunctionUrl

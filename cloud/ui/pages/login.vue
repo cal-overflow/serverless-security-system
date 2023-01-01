@@ -1,5 +1,5 @@
 <template>
-  <div class=" mx-auto flex h-screen">
+  <div class="mx-auto flex h-screen">
     <div class="max-w-screen-sm m-auto w-full bg-card-light dark:bg-card-dark p-4 flex flex-wrap shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
       <p class="text-2xl font-bold">Login</p>
       <form @submit.prevent="submitLogin" class="flex flex-wrap w-full">
