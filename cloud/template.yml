@@ -34,6 +34,11 @@ Parameters:
     Description: The number (in seconds) that user's authentication tokens are valid for.
     Default: 2419200 # 4 weeks
 
+  CachePolicyId:
+    Type: String
+    Default: 658327ea-f89d-4fab-a63d-7e88639e58f6 # id for the caching optimized policy
+    # See more policies at https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policies-list
+
 Resources:
   S3Bucket:
     Type: AWS::S3::Bucket
@@ -447,6 +452,7 @@ Resources:
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
             - GET
+          CachePolicyId: !Ref CachePolicyId
           TargetOriginId: !Sub 's3-origin-${FrontendS3Bucket}'
           Compress: true
         Enabled: true
