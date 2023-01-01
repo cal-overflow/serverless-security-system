@@ -134,7 +134,7 @@ jobs:
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version-file: ./cloutd/ui/.nvmrc
+          node-version-file: ./cloud/ui/.nvmrc
 
       - name: Install dependencies
         run: npm ci --prefer-offline --no-audit
