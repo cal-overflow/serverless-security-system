@@ -484,3 +484,7 @@ Outputs:
     Value: !GetAtt APILambdaFnUrl.FunctionUrl
     Description: The serverless API URL
 
+  FrontendUrl:
+    Value: !GetAtt FrontendCloudFrontDistro.DomainName
+    Description: The URL of the frontend's cloudfront distribution.
+

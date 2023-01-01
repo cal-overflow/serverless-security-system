@@ -132,7 +132,7 @@ jobs:
         uses: actions/checkout@master
 
       - name: Setup node
-        uses: actions/setup-node@v2.1.5
+        uses: actions/setup-node@v3
         with:
           node-version-file: .nvmrc
 
@@ -158,7 +158,8 @@ jobs:
       - name: Generate Github Actions summary
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
+          FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendUrl`].OutputValue' --output text)
           echo "### System information :lock: :camera:" >> $GITHUB_STEP_SUMMARY
-          echo "Frontend: *Not yet implemented*" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend: [$FRONTEND_URL]($FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
           echo "API: [$API_URL]($API_URL)" >> $GITHUB_STEP_SUMMARY
 
