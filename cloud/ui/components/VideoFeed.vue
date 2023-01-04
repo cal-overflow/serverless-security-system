@@ -8,6 +8,9 @@
         TODO - Add a loading indicator here
       </div>
 
+      <div>
+      </div>
+
       <div class="w-full md:w-4/5 mx-auto items-start">
         <video
           controls
@@ -25,6 +28,15 @@
         ></video>
         </div>
        <div class="w-full md:w-1/5 mx-auto pl-4">
+
+        <label for="date" class="font-bold">Date</label>
+        <input
+          v-model="dateFilter"
+          type="string"
+          name="date"
+          id="dateInput"
+          class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+        />
        <p class="font-bold">Times</p>
        <div v-if="videos.length > 0" class="max-h-96 overflow-y-scroll">
           <p
@@ -49,6 +61,9 @@
 <script>
 import { getVideos } from '@/services/videos.js';
 
+const today = new Date()
+const yesterday = new Date(today)
+yesterday.setDate(yesterday.getDate() - 1)
 
 export default {
   name: 'video-feed',
@@ -65,9 +80,7 @@ export default {
     currentVideoIndex: 0,
     backgroundPlayerId: 1,
     descriptionText: 'Latest footage',
-    options: {
-      date: '2022-12-30'
-    },
+    dateFilter: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
   }),
   mounted() {
     if (this.type !== 'all' && this.type !== 'motion' && this.type !== 'motionless') {
@@ -85,25 +98,30 @@ export default {
     }
   },
   fetch() {
-    this.isLoading = true;
-
-    getVideos(this.type, this.options)
-    .then((videos) => {
-      videos.forEach((video) => {
-        video.time_formatted = video.time.replace(/-/g, ':');
-      });
-      this.videos = videos;
-      this.updateCurrentVideo(0);
-    })
-    .catch((err) => {
-      // TODO - implement error handling
-      console.log(err);
-    })
-    .finally(() => {
-      this.isLoading = false;
-    });
+    this.getVideos();
   },
   methods: {
+    getVideos() {
+      this.isLoading = true;
+      this.videos = [];
+      const options = { date: this.dateFilter }
+
+      getVideos(this.type, options)
+      .then((videos) => {
+        videos.forEach((video) => {
+          video.time_formatted = video.time.replace(/-/g, ':');
+        });
+        this.videos = videos;
+        this.updateCurrentVideo(0);
+      })
+      .catch((err) => {
+        // TODO - implement error handling
+        console.log(err);
+      })
+      .finally(() => {
+        this.isLoading = false;
+      });
+    },
     updateCurrentVideo(index) {
       this.currentVideo = this.videos[index];
 
@@ -133,8 +151,43 @@ export default {
         console.log('ENDED', this.currentVideoIndex);
         this.updateCurrentVideo(this.currentVideoIndex + 1);
       };
+    },
+    isValidDate(dateString) {
+      // First check for the pattern
+      if (!/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateString))
+          return false;
 
+      console.log('made it this far')
 
+      // Parse the date parts to integers
+      const parts = dateString.split("-");
+      const year = parseInt(parts[0], 10);
+      const month = parseInt(parts[1], 10);
+      const day = parseInt(parts[2], 10);
+
+      // Check the ranges of month and year
+      if (year < 1000 || year > 3000 || month === 0 || month > 12)
+          return false;
+
+      const monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+      // Adjust for leap years
+      if (year % 400 === 0 || (year % 100 !== 0 && year % 4 === 0))
+          monthLength[1] = 29;
+
+      // Check the range of the day
+      return day > 0 && day <= monthLength[month - 1];
+    },
+  },
+  watch: {
+    dateFilter(newDate, oldDate) {
+      if (this.isValidDate(newDate)) {
+        this.getVideos();
+      }
+      else {
+        console.log('Invalid date');
+        // TODO - show the user their date is invalid
+      }
     }
   }
 }
