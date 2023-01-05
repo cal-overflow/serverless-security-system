@@ -443,7 +443,7 @@ Resources:
     Properties:
       OriginAccessControlConfig:
         Name: !Sub '${AWS::StackName}-origin-access-control'
-        Comment: !Sub 'Origin access control for ${FrontendS3Bucket.DomainName}'
+        Description: !Sub 'Origin access control for ${FrontendS3Bucket.DomainName}'
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
