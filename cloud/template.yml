@@ -420,7 +420,7 @@ Resources:
     Properties:
       WebsiteConfiguration:
         IndexDocument: "index.html"
-        ErrorDocument: "200.html"
+        ErrorDocument: "index.html"
 
   FrontendS3BucketPolicy:
     Type: AWS::S3::BucketPolicy
