@@ -439,7 +439,7 @@ Resources:
               - !Sub 'arn:aws:s3:::${FrontendS3Bucket}/*'
           
   FrontendCloudFrontOriginAccessControl:
-    Type: AWS::CloudFront::CloudFrontOriginAccessControl
+    Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
         Name: !Sub '${AWS::StackName}-origin-access-control'
