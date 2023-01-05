@@ -430,17 +430,23 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Sid: PublicReadForGetBucketObjects
-            Action: 's3:GetObject'
+            Action: 's3:GetObject', 's3:ListBucket'
             Effect: Allow
-            Principal: '*' # TODO: see if this can be limited
+            Principal:
+              Service: cloudfront.amazonaws.com
             Resource: 
+              - !Sub 'arn:aws:s3:::${FrontendS3Bucket}'
               - !Sub 'arn:aws:s3:::${FrontendS3Bucket}/*'
           
-  FrontendCloudFrontOriginAccessIdentity:
-    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+  FrontendCloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::CloudFrontOriginAccessControl
     Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'Origin identity for ${FrontendS3Bucket.DomainName}'
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-origin-access-control'
+        Comment: !Sub 'Origin access control for ${FrontendS3Bucket.DomainName}'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
 
   FrontendCloudFrontDistro:
     Type: AWS::CloudFront::Distribution
@@ -465,8 +471,9 @@ Resources:
         Origins:
         - DomainName: !GetAtt FrontendS3Bucket.DomainName
           Id: !Sub 's3-origin-${FrontendS3Bucket}'
-          S3OriginConfig:
-            OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${FrontendCloudFrontOriginAccessIdentity}'
+          OriginAccessControlId: !GetAtt FrontendCloudFrontOriginAccessControl.Id
+          S3OriginConfig: # Necessary for cloudfront to work with s3 even though OAI is not being used
+            OriginAccessIdentity: ''
         ViewerCertificate:
           CloudFrontDefaultCertificate: 'true'
 

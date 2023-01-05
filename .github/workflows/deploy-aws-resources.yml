@@ -13,7 +13,7 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: security-system
+  STACK_NAME: security-system-test # TODO - remove -test
   API_LAMBDA_FN_S3_KEY: lambda/apii${{ github.run_id	}}.zip
   UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler-${{ github.run_id }}.zip
   ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger-${{ github.run_id }}.zip
