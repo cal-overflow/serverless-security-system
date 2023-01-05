@@ -430,7 +430,7 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Sid: PublicReadForGetBucketObjects
-            Action: 's3:GetObject', 's3:ListBucket'
+            Action: [ 's3:GetObject', 's3:ListBucket' ]
             Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
