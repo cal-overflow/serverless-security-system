@@ -430,12 +430,11 @@ Resources:
         Version: 2012-10-17
         Statement:
           - Sid: PublicReadForGetBucketObjects
-            Action: [ 's3:GetObject', 's3:ListBucket' ]
+            Action: [ 's3:GetObject' ]
             Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
             Resource: 
-              - !Sub 'arn:aws:s3:::${FrontendS3Bucket}'
               - !Sub 'arn:aws:s3:::${FrontendS3Bucket}/*'
           
   FrontendCloudFrontOriginAccessControl:
