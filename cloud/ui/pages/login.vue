@@ -43,11 +43,18 @@ import { login } from '@/services/auth.js';
 
 export default {
   name: 'LoginPage',
+  layout: 'gateway',
   data: () => ({
     username: '',
     password: '',
     infoMessage: ''
   }),
+  asyncData({ redirect }) {
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      redirect('/');
+    }
+  },
   methods: {
     submitLogin() {
       this.infoMessage = 'Loading...';

@@ -4,14 +4,14 @@
       <p class="text-xl font-bold">Cameras</p>
 
       <div
-        v-for="client in clients"
-        :key="client.id"
+        v-for="camera in cameras"
+        :key="camera.id"
         class="w-full my-4"
       >
-        <p class="text-lg font-bold">{{client.name}}</p>
+        <p class="text-lg font-bold">{{camera.name}}</p>
         <p>
           <span class="text-sm font-bold">Last upload:</span>
-          {{client.last_upload_time_formatted}}
+          {{camera.last_upload_time_formatted}}
         </p>
       </div>
       
@@ -24,9 +24,9 @@
 import { getClients } from '@/services/clients.js';
 
 export default {
-  name: 'client-overview',
+  name: 'camera-overview',
   data: () => ({
-    clients: [],
+    cameras: [],
   }),
   fetch() {
 
@@ -36,7 +36,7 @@ export default {
           const dateObj = new Date(parseFloat(client.last_upload_time) * 1000);
           client.last_upload_time_formatted = dateObj.toLocaleString();
         });
-      this.clients = clients;
+      this.cameras = clients;
     })
     .catch((err) => {
       // TODO - implement error handling

@@ -22,13 +22,8 @@
 </template>
 
 <script>
-import NavItem from '@/components/NavItem.vue';
-
 export default {
   name: 'footer-bar',
-  components: {
-    NavItem
-  },
   props: {
     currentPage: {
       type: String,
@@ -40,14 +35,6 @@ export default {
       {
         title: 'Home',
         href: '/'
-      },
-      {
-        title: 'Cameras',
-        href: '/cameras'
-      },
-      {
-        title: 'Settings',
-        href: '/settings'
       },
       {
         title: 'Logout',

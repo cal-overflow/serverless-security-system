@@ -9,6 +9,8 @@ from decimal import Decimal
 
 USERS_TABLE= os.environ.get('USERS_TABLE')
 USER_TOKEN_EXPIRATION_TIME = int(os.environ.get('USER_TOKEN_EXPIRATION_TIME'))
+PROJECTION_EXPRESSSION='#n, #a, #t, #e'
+EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', '#t': 'token', '#e': 'token_expiration' }
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(USERS_TABLE)
@@ -26,7 +28,9 @@ def get_authenticated_user(event, _):
     response = table.query(
         IndexName='TokenIndex',
         KeyConditionExpression=Key('token').eq(token),
-        Limit=1
+        Limit=1,
+        ProjectionExpression=PROJECTION_EXPRESSSION,
+        ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
     )
 
 

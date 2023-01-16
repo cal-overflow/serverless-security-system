@@ -22,7 +22,7 @@ export const getVideos = async (videoType='all', { date, camera, startHour, endH
   });
 
   if (!response.ok) {
-    throw new Error(await response.text())
+    throw new Error(await response.text());
   }
 
   const videos = await response.json();

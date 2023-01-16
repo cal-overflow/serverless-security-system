@@ -7,8 +7,8 @@ from decimal import Decimal
 
 
 USERS_TABLE= os.environ.get('USERS_TABLE')
-PROJECTION_EXPRESSSION='#n, #a, #p'
-EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', '#p': 'pin' }
+PROJECTION_EXPRESSSION='#n, #a'
+EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', }
 ACCEPTED_KEYS=['name', 'admin', 'pin']
 
 dynamodb = boto3.resource('dynamodb')
@@ -78,8 +78,11 @@ def get_user(event, _):
 
     response = table.get_item(
             Key={ 'name': user_to_get },
-            ProjectionExpression=PROJECTION_EXPRESSSION,
-            ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
+            ProjectionExpression=PROJECTION_EXPRESSSION + ', #p',
+            ExpressionAttributeNames={
+                **EXPRESSION_ATTRIBUTE_NAMES,
+                '#p': 'pin'
+            },
         )
 
     if 'Item' not in response.keys():
@@ -89,11 +92,7 @@ def get_user(event, _):
 
 
 def get_all_users(event, _):
-    '''Returns a user (based on the given user name). Returns None if the user does not exist. Requires the authenticated user to be an admin.'''
-
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
-
+    '''Returns a user (based on the given user name). Returns None if the user does not exist.'''
 
     response = table.scan(
             ProjectionExpression=PROJECTION_EXPRESSSION,

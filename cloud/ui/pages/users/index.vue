@@ -1,15 +1,18 @@
-
 <template>
   <div class="max-w-screen-lg mx-auto bg-card-light dark:bg-card-dark m-6 p-4 shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
     <div>
       <p class="text-2xl font-bold">Users</p>
     </div>
     <div class="flex flex-wrap md:flex-nowrap">
-      <user-card
+      <nuxt-link
         v-for="user in users"
         :key="`user-${user.name}`"
-        :user="user"
-      />
+        :to="`/users/${user.name}`"
+      >
+        <user-card
+          :user="user"
+        />
+      </nuxt-link>
       <create-user-card v-if="isAddingUser" @userCreated="addUser" />
       <button
         v-else
@@ -28,6 +31,7 @@ import { getUsers } from '@/services/users.js';
 
 export default {
   name: 'UsersPage',
+  middleware: 'authenticate',
   data: () => ({
     users: [],
     isLoading: true,

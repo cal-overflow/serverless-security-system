@@ -9,6 +9,7 @@ import { logout } from '@/services/auth.js';
 
 export default {
   name: 'LogoutPage',
+  layout: 'gateway',
   asyncData({ redirect }) {
     const accessToken = localStorage.getItem('accessToken');
 

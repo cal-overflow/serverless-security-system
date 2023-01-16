@@ -62,8 +62,6 @@
 import { getVideos } from '@/services/videos.js';
 
 const today = new Date()
-const yesterday = new Date(today)
-yesterday.setDate(yesterday.getDate() - 1)
 
 export default {
   name: 'video-feed',
@@ -76,11 +74,12 @@ export default {
   data: () => ({
     videos: [],
     isLoading: true,
+    isUnmounted: false,
     currentVideo: undefined,
     currentVideoIndex: 0,
     backgroundPlayerId: 1,
     descriptionText: 'Latest footage',
-    dateFilter: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
+    dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
   }),
   mounted() {
     if (this.type !== 'all' && this.type !== 'motion' && this.type !== 'motionless') {
@@ -100,6 +99,9 @@ export default {
   fetch() {
     this.getVideos();
   },
+  beforeDestroy() {
+    this.isUnmounted = true;
+  },
   methods: {
     getVideos() {
       this.isLoading = true;
@@ -108,6 +110,9 @@ export default {
 
       getVideos(this.type, options)
       .then((videos) => {
+          if (this.isUnmounted) {
+            return; // this api call can take a while so if the page is unmounted then cancel the remaining logic
+          }
         videos.forEach((video) => {
           video.time_formatted = video.time.replace(/-/g, ':');
         });

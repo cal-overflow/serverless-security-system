@@ -21,8 +21,11 @@ def handler(event, context):
                 return refresh_token(event, context)
             if event['rawPath'].startswith('/auth/logout'):
                 return logout(event, context)
-        else:
-            invalid_request_method = False
+        elif method == 'GET':
+            if event['rawPath'].startswith('/auth/user'):
+                return get_authenticated_user(event, context)
+
+        invalid_request_method = False
 
 
     authenticated_user = get_authenticated_user(event, context)

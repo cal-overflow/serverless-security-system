@@ -1,6 +1,9 @@
-
 <template>
-  <Nuxt class="bg-main-light dark:bg-main-dark dark:text-white transition" />
+  <div class="bg-main-light dark:bg-main-dark dark:text-white transition">
+    <nav-bar />
+    <Nuxt />
+    <footer-bar />
+  </div>
 </template>
 
 <style>

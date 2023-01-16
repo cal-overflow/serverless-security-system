@@ -79,3 +79,26 @@ export const logout = async () => {
   localStorage.removeItem('accessToken');
   localStorage.removeItem('tokenExpiration');
 };
+
+
+export const getAuthenticatedUser = async () => {
+  const accessToken = localStorage.getItem('accessToken');
+
+  const response = await fetch(`${API_URL}/auth/user`,
+    {
+      method: 'GET',
+      headers: {
+        ...headers,
+        'access-token': accessToken
+      }
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+
+  return await response.json();
+};
+
+
