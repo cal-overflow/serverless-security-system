@@ -24,7 +24,10 @@ def get_files_in_folder(folder, suffix=''):
     pages = paginator.paginate(Bucket=BUCKET, Prefix=folder)
 
     for page in pages:
-        for obj_data in page['Contents']:
+        if 'Contents' not in page.keys():
+            continue
+
+        for obj_data in page.get('Contents', []):
             if not obj_data['Key'].endswith(suffix):
                 continue
 
