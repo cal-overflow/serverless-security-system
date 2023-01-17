@@ -30,7 +30,7 @@
               name="clipLength"
               required
               :disabled="!hasPermissionToEdit"
-              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
             />
           </div>
           <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
@@ -51,7 +51,7 @@
               name="clipsPerUpload"
               required
               :disabled="!hasPermissionToEdit"
-              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
             />
           </div>
           <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
@@ -68,7 +68,7 @@
               name="defaultMotionThreshold"
               required
               :disabled="!hasPermissionToEdit"
-              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
             >
               <option value="15000">Lowest sensitivity (15000)</option>
               <option value="10000">Low sensitivity (10000)</option>
@@ -108,7 +108,7 @@
               name="presignUrlExpirationTime"
               required
               :disabled="!hasPermissionToEdit"
-              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
             >
               <option value=3600>1 hour</option>
               <option value="7200">2 hours</option>
@@ -136,7 +136,7 @@
               name="daysToKeepMotionlessVideos"
               required
               :disabled="!hasPermissionToEdit"
-              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
+              class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
             >
               <option value="1">1 day</option>
               <option value="2">2 days</option>

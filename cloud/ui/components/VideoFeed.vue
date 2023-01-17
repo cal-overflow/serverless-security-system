@@ -41,14 +41,22 @@
         />
         <p :class="`text-sm text-extra-gray-dark dark:text-extra-gray-light transition duration-250 ${isDateValid ? 'opacity-0' : 'opacity-1'}`">Invalid date</p>
         <label for="type" class="font-bold">Type</label>
-        <select name="type" v-model="type">
+        <select
+          v-model="type"
+          name="type"
+          class="appearance-none resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+        >
           <option value="all">All footage</option>
           <option value="motion">With activity</option>
           <option value="motionless">Without activity</option>
         </select>
         <br />
         <label for="camera" class="font-bold">Camera</label>
-        <select name="camera" v-model="camera">
+        <select
+          v-model="camera"
+          name="camera"
+          class="appearance-none resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+        >
           <option value="">Any Camera</option>
           <option v-for="camera in cameras" :key="camera.id" :value="camera.id">{{camera.name}}</option>
         </select>
