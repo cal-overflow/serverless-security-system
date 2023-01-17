@@ -1,4 +1,4 @@
-from auth import get_authenticated_user, login, logout, refresh_token
+from auth import get_authenticated_user, get_authenticated_user_api_call, login, logout, refresh_token
 from config import get_config, update_config
 from users import create_user, delete_user, get_all_users, get_user, update_user
 from clients import get_all_clients, get_client, update_client
@@ -23,7 +23,7 @@ def handler(event, context):
                 return logout(event, context)
         elif method == 'GET':
             if event['rawPath'].startswith('/auth/user'):
-                return get_authenticated_user(event, context)
+                return get_authenticated_user_api_call(event, context)
 
         invalid_request_method = False
 

@@ -44,6 +44,22 @@ def get_authenticated_user(event, _):
 
     return authorized_user
 
+def get_authenticated_user_api_call(event, _):
+    '''Returns the authenticated user (based on the given access token). Returns a 400 if the authenticated user cannot be found for any reason.'''
+
+    authenticated_user = get_authenticated_user(event, _)
+
+    if authenticated_user is None:
+        return { 'statusCode': 400 }
+
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            **authenticated_user,
+            'token_expiration': float(authenticated_user['token_expiration'])
+        })
+    }
+
 
 def login(event, _):
     '''Generates, stores, and returns an auth token for the associated user (based on the given credentials).Returns an informative message given the input is invalid.'''
