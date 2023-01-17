@@ -38,10 +38,7 @@ def get_files_in_folder(folder, suffix=''):
 
 
 def get_all_clients(event, _):
-    '''Returns all clients. Requires the authenticated user to be an admin.'''
-
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
+    '''Returns all clients.'''
 
     client_file_keys = get_files_in_folder('configuration/clients')
     clients = []
@@ -63,15 +60,12 @@ def get_all_clients(event, _):
 
 
 def get_client(event, _):
-    '''Returns a client based on the id in the path. Returns None if the client does not exist. Requires the authenticated user to be an admin.'''
+    '''Returns a client based on the id in the path. Returns None if the client does not exist.'''
 
     client_to_get = event['rawPath'][len('/clients/'):]
 
     if '/' in client_to_get or client_to_get == '':
         return { 'statusCode': 400 }
-
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
 
     local_file = f'/tmp/{client_to_get}.json'
     try:
