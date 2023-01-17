@@ -15,7 +15,7 @@ export default async function(context) {
   }
   catch {
     console.log('AN ERROR OCCURRED REFRESHING TOKEN');
-    return context.redirect('/login');
+    return context.redirect('/logout');
   }
 
   try {
@@ -23,7 +23,7 @@ export default async function(context) {
   }
   catch {
     console.log('AN ERROR OCCURRED GETTING AUTH USER');
-    return context.redirect('/login');
+    return context.redirect('/logout');
   }
 
 }

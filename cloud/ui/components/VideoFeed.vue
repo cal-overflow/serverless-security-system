@@ -82,10 +82,11 @@
             {{video.time_formatted}}
           </p>
         </div>
-        <div v-else class="motion-safe:animate-pulse max-h-96 overflow-y-scroll">
+        <div v-else-if="isLoading" class="motion-safe:animate-pulse max-h-96 overflow-y-scroll">
           <div v-for="i in 40" :key="`lazy-video-link-${i}`" class="bg-gray-400 w-4/5 h-4 my-2" />
           <div class="h-2" />
         </div>
+        <p v-else class="font-bold">No videos found</p>
       </div>
     </div>
   </div>
