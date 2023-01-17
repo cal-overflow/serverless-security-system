@@ -29,6 +29,8 @@
         </div>
        <div class="w-full md:w-1/5 mx-auto pl-4">
 
+
+      <div>
         <label for="date" class="font-bold">Date</label>
         <input
           v-model="dateFilter"
@@ -37,10 +39,34 @@
           id="dateInput"
           class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light focus:dark:ring-primary-dark transition"
         />
+        <p :class="`text-sm text-extra-gray-dark dark:text-extra-gray-light transition duration-250 ${isDateValid ? 'opacity-0' : 'opacity-1'}`">Invalid date</p>
+        <label for="type" class="font-bold">Type</label>
+        <select name="type" v-model="type">
+          <option value="all">All footage</option>
+          <option value="motion">With activity</option>
+          <option value="motionless">Without activity</option>
+        </select>
+        <br />
+        <label for="camera" class="font-bold">Camera</label>
+        <select name="camera" v-model="camera">
+          <option value="">Any Camera</option>
+          <option v-for="camera in cameras" :key="camera.id" :value="camera.id">{{camera.name}}</option>
+        </select>
+        <br />
+        <button
+          :class="`rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${isChanges && isDateValid ? 'opacity-1 cursor-pointer' : 'opacity-25 cursor-default'}`"
+          :disabled="isChanges && isDateValid"
+          @click="applyFilter"
+        >
+          Apply Filter
+        </button>
+      </div>
+
+
        <p class="font-bold">Times</p>
-       <div v-if="videos.length > 0" class="max-h-96 overflow-y-scroll">
+       <div v-if="videosFilteredByCamera.length > 0" class="max-h-96 overflow-y-scroll">
           <p
-            v-for="(video, i) in videos"
+            v-for="(video, i) in videosFilteredByCamera"
             :key="`video-${video.time}-link`"
             :class="`cursor-pointer hover:underline ${currentVideoIndex === i ? 'font-bold text-primary-light dark:text-primary-dark' : ''}`"
             @click="updateCurrentVideo(i)"
@@ -60,44 +86,39 @@
 
 <script>
 import { getVideos } from '@/services/videos.js';
+import { getClients } from '@/services/clients.js';
 
 const today = new Date()
 
 export default {
   name: 'video-feed',
   props: {
-    type: {
+    descriptionText: {
       type: String,
-      default: 'all'
-    }
+      default: 'Latest footage',
+    },
   },
   data: () => ({
     videos: [],
+    videosFilteredByCamera: [],
+    cameras: [],
     isLoading: true,
     isUnmounted: false,
     currentVideo: undefined,
     currentVideoIndex: 0,
     backgroundPlayerId: 1,
-    descriptionText: 'Latest footage',
-    dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`
+    type: 'motion',
+    camera: '',
+    dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`,
+    previousFilter: {
+      type: 'motion',
+      camera: '',
+      dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`,
+    }
   }),
-  mounted() {
-    if (this.type !== 'all' && this.type !== 'motion' && this.type !== 'motionless') {
-      throw new Error('Invalid type prop provided. Must be all, motion, or motionless'); // TODO - figure out what to actually do here - maybe just default to all?
-    }
-    
-    if (this.type === 'all') {
-      this.descriptionText = 'Latest footage';
-    }
-    else if (this.type === 'motion') {
-      this.descriptionText = 'Latest footage with activity';
-    }
-    else if (this.type === 'motionless') {
-      this.descriptionText = 'Latest footage with no activity';
-    }
-  },
   fetch() {
     this.getVideos();
+    this.getCameras();
   },
   beforeDestroy() {
     this.isUnmounted = true;
@@ -106,7 +127,7 @@ export default {
     getVideos() {
       this.isLoading = true;
       this.videos = [];
-      const options = { date: this.dateFilter }
+      const options = { date: this.dateFilter };
 
       getVideos(this.type, options)
       .then((videos) => {
@@ -117,6 +138,12 @@ export default {
           video.time_formatted = video.time.replace(/-/g, ':');
         });
         this.videos = videos;
+
+        if (this.camera) {
+          this.videosFilteredByCamera = videos.filter(({ camera }) => camera === this.camera);
+        }
+        else this.videosFilteredByCamera = videos;
+
         this.updateCurrentVideo(0);
       })
       .catch((err) => {
@@ -127,8 +154,22 @@ export default {
         this.isLoading = false;
       });
     },
+    getCameras() {
+      getClients(this.videoType, this.options)
+      .then((clients) => {
+          clients.forEach((client) => {
+            const dateObj = new Date(parseFloat(client.last_upload_time) * 1000);
+            client.last_upload_time_formatted = dateObj.toLocaleString();
+          });
+        this.cameras = clients;
+      })
+      .catch((err) => {
+        // TODO - implement error handling
+        console.log(err);
+      });
+    },
     updateCurrentVideo(index) {
-      this.currentVideo = this.videos[index];
+      this.currentVideo = this.videosFilteredByCamera[index];
 
       console.log('changing video to ', this.currentVideo.time)
       
@@ -149,7 +190,7 @@ export default {
       };
 
       loadingVideoElement.onended = () => {
-        if (index === this.videos.length - 1) {
+        if (index === this.videosFilteredByCamera.length - 1) {
           return;
         }
 
@@ -157,7 +198,24 @@ export default {
         this.updateCurrentVideo(this.currentVideoIndex + 1);
       };
     },
-    isValidDate(dateString) {
+    applyFilter() {
+      if (this.previousFilter.type === this.type && this.previousFilter.dateFilter === this.dateFilter) {
+        this.videosFilteredByCamera = this.videos.filter(({ camera }) => camera === this.camera);
+      }
+      else this.getVideos();
+
+
+      this.previousFilter = {
+        type: this.type,
+        camera: this.camera,
+        dateFilter: this.dateFilter,
+      };
+
+    }
+  },
+  computed: {
+    isDateValid() {
+      const dateString = this.dateFilter;
       // First check for the pattern
       if (!/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateString))
           return false;
@@ -183,16 +241,9 @@ export default {
       // Check the range of the day
       return day > 0 && day <= monthLength[month - 1];
     },
-  },
-  watch: {
-    dateFilter(newDate, oldDate) {
-      if (this.isValidDate(newDate)) {
-        this.getVideos();
-      }
-      else {
-        console.log('Invalid date');
-        // TODO - show the user their date is invalid
-      }
+    isChanges() {
+      console.log(this.camera);
+      return !(this.previousFilter.type === this.type && this.previousFilter.camera === this.camera && this.previousFilter.dateFilter === this.dateFilter);
     }
   }
 }
