@@ -62,7 +62,7 @@ export const logout = async () => {
     return; // Do nothing if the user's current auth token is expired
   }
 
-  const response = await fetch(`${API_URL}/auth/logout`,
+  await fetch(`${API_URL}/auth/logout`,
     {
       method: 'POST',
       headers: {
@@ -71,10 +71,6 @@ export const logout = async () => {
       }
     }
   );
-
-  if (!response.ok) {
-    throw new Error(await response.text())
-  }
 
   localStorage.removeItem('accessToken');
   localStorage.removeItem('tokenExpiration');
