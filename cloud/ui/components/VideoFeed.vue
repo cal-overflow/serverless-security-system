@@ -63,7 +63,7 @@
         <br />
         <button
           :class="`rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${isChanges && isDateValid ? 'opacity-1 cursor-pointer' : 'opacity-25 cursor-default'}`"
-          :disabled="isChanges && isDateValid"
+          :disabled="!(isChanges && isDateValid)"
           @click="applyFilter"
         >
           Apply Filter
@@ -135,6 +135,7 @@ export default {
     getVideos() {
       this.isLoading = true;
       this.videos = [];
+      this.videosFilteredByCamera = [];
       const options = { date: this.dateFilter };
 
       getVideos(this.type, options)
@@ -178,6 +179,7 @@ export default {
     },
     updateCurrentVideo(index) {
       this.currentVideo = this.videosFilteredByCamera[index];
+      if (!this.currentVideo) return;
 
       console.log('changing video to ', this.currentVideo.time)
       
@@ -228,7 +230,6 @@ export default {
       if (!/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateString))
           return false;
 
-      console.log('made it this far')
 
       // Parse the date parts to integers
       const parts = dateString.split("-");
@@ -250,7 +251,6 @@ export default {
       return day > 0 && day <= monthLength[month - 1];
     },
     isChanges() {
-      console.log(this.camera);
       return !(this.previousFilter.type === this.type && this.previousFilter.camera === this.camera && this.previousFilter.dateFilter === this.dateFilter);
     }
   }
