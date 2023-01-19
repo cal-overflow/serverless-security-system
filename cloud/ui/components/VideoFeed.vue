@@ -34,7 +34,7 @@
         <label for="date" class="font-bold">Date</label>
         <input
           v-model="dateFilter"
-          type="string"
+          type="date"
           name="date"
           id="dateInput"
           class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
@@ -97,7 +97,17 @@
 import { getVideos } from '@/services/videos.js';
 import { getClients } from '@/services/clients.js';
 
-const today = new Date()
+const formatNumber = (num) => {
+  return num.toLocaleString('en-US', {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+};
+
+
+const today = new Date();
+const initialDateFilter = `${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`
+
 
 export default {
   name: 'video-feed',
@@ -118,11 +128,11 @@ export default {
     backgroundPlayerId: 1,
     type: 'motion',
     camera: '',
-    dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`,
+    dateFilter: initialDateFilter,
     previousFilter: {
       type: 'motion',
       camera: '',
-      dateFilter: `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`,
+      dateFilter: initialDateFilter,
     }
   }),
   fetch() {

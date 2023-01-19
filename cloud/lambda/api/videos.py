@@ -118,7 +118,7 @@ def get_videos(event, _):
         videos = sorted(videos, key=lambda video: video['time'])
 
     elif event['rawPath'].endswith('/motionless'):
-        videos = get_videos_with_motion(requested_date, requested_hours, requested_camera)
+        videos = get_videos_without_motion(requested_date, requested_hours, requested_camera)
 
     elif event['rawPath'].endswith('/motion'):
         videos = get_videos_with_motion(requested_date, requested_hours, requested_camera)
