@@ -2,11 +2,12 @@ const API_URL = process.env.NUXT_ENV_API_URL;
 const headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
 
 
-export const getVideos = async (videoType='all', { date, camera, startHour, endHour }) => {
+export const getVideos = async (videoType='all', { date, camera, hours, }) => {
+  console.log(hours);
   const options = {
     date,
     camera,
-    hours: startHour && endHour ? `${startHour}-${endHour}` : undefined,
+    hours,
   };
   // remove all undefined (unset) options
   Object.keys(options).forEach(key => options[key] === undefined ? delete options[key] : {});

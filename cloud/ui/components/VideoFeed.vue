@@ -118,6 +118,11 @@ export default {
     },
   },
   data: () => ({
+    times: [
+      '0-8',
+      '9-16',
+      '17-23',
+    ],
     videos: [],
     videosFilteredByCamera: [],
     cameras: [],
@@ -149,20 +154,32 @@ export default {
       this.videosFilteredByCamera = [];
       const options = { date: this.dateFilter };
 
-      getVideos(this.type, options)
-      .then((videos) => {
-          if (this.isUnmounted) {
-            return; // this api call can take a while so if the page is unmounted then cancel the remaining logic
-          }
-        videos.forEach((video) => {
+      const fetchVideosTasks = [];
+
+      for (const time of this.times) {
+        fetchVideosTasks.push(getVideos(this.type, { ...options, hours: time }));
+      }
+
+      Promise.all(fetchVideosTasks).then((videos) => {
+        if (this.isUnmounted) {
+          return; // this api call can take a while so if the page is unmounted then cancel the remaining logic
+        }
+
+        const allVideos = videos.flat();
+        console.log(allVideos);
+
+        allVideos.forEach((video) => {
+          console.log('video includes time attribute? ', Boolean(video.time));
           video.time_formatted = video.time.replace(/-/g, ':');
         });
-        this.videos = videos;
+        this.videos = allVideos;
+        console.log(this.videos);
 
         if (this.camera) {
-          this.videosFilteredByCamera = videos.filter(({ camera }) => camera === this.camera);
+          this.videosFilteredByCamera = this.videos.filter(({ camera }) => camera === this.camera);
         }
-        else this.videosFilteredByCamera = videos;
+        else this.videosFilteredByCamera = this.videos;
+
 
         this.updateCurrentVideo(0);
       })
