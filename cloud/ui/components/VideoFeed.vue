@@ -4,13 +4,6 @@
       <p class="text-lg font-bold">{{descriptionText}}</p>
     </div>
     <div class="flex flex-wrap md:flex-nowrap">
-      <div v-if="isLoading">
-        TODO - Add a loading indicator here
-      </div>
-
-      <div>
-      </div>
-
       <div class="w-full md:w-4/5 mx-auto items-start">
         <video
           controls
@@ -31,20 +24,11 @@
 
 
       <div>
-        <label for="date" class="font-bold">Date</label>
-        <input
-          v-model="dateFilter"
-          type="date"
-          name="date"
-          id="dateInput"
-          class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
-        />
-        <p :class="`text-sm text-extra-gray-dark dark:text-extra-gray-light transition duration-250 ${isDateValid ? 'opacity-0' : 'opacity-1'}`">Invalid date</p>
         <label for="type" class="font-bold">Type</label>
         <select
           v-model="type"
           name="type"
-          class="appearance-none resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+          class="appearance-none w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
         >
           <option value="all">All footage</option>
           <option value="motion">With activity</option>
@@ -55,14 +39,23 @@
         <select
           v-model="camera"
           name="camera"
-          class="appearance-none resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+          class="appearance-none w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
         >
           <option value="">Any Camera</option>
           <option v-for="camera in cameras" :key="camera.id" :value="camera.id">{{camera.name}}</option>
         </select>
         <br />
+        <label for="date" class="font-bold">Date</label>
+        <input
+          v-model="dateFilter"
+          type="date"
+          name="date"
+          id="dateInput"
+          class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+        />
+        <p :class="`text-sm text-extra-gray-dark dark:text-extra-gray-light transition duration-250 ${isDateValid ? 'opacity-0' : 'opacity-1'}`">Invalid date</p>
         <button
-          :class="`rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${isChanges && isDateValid ? 'opacity-1 cursor-pointer' : 'opacity-25 cursor-default'}`"
+          :class="`rounded-md py-1 px-2 mt-2 mb-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${isChanges && isDateValid ? 'opacity-1 cursor-pointer' : 'opacity-25 cursor-default'}`"
           :disabled="!(isChanges && isDateValid)"
           @click="applyFilter"
         >
@@ -70,9 +63,9 @@
         </button>
       </div>
 
-
-       <p class="font-bold">Times</p>
-       <div v-if="videosFilteredByCamera.length > 0" class="max-h-96 overflow-y-scroll">
+      <div class="w-1/2 md:w-full mx-auto text-center md:text-left">
+        <p class="font-bold">Times</p>
+        <div v-if="videosFilteredByCamera.length > 0" class="max-h-96 overflow-y-scroll">
           <p
             v-for="(video, i) in videosFilteredByCamera"
             :key="`video-${video.time}-link`"
@@ -81,12 +74,12 @@
           >
             {{video.time_formatted}}
           </p>
+          </div>
+          <div v-else-if="isLoading" class="motion-safe:animate-pulse">
+            <p>Loading...</p>
+          </div>
+          <p v-else class="font-bold">No videos found</p>
         </div>
-        <div v-else-if="isLoading" class="motion-safe:animate-pulse max-h-96 overflow-y-scroll">
-          <div v-for="i in 40" :key="`lazy-video-link-${i}`" class="bg-gray-400 w-4/5 h-4 my-2" />
-          <div class="h-2" />
-        </div>
-        <p v-else class="font-bold">No videos found</p>
       </div>
     </div>
   </div>
