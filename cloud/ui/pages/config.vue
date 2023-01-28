@@ -203,11 +203,11 @@ export default {
       this.infoMessage = 'Saving...';
 
       updateConfig({
-        clip_length: this.clipLength,
-        clips_per_upload: this.clipsPerUpload,
+        clip_length: parseInt(this.clipLength),
+        clips_per_upload: parseInt(this.clipsPerUpload),
         presign_url_expiration_time: parseInt(this.presignUrlExpirationTime),
-        default_motion_threshold: this.defaultMotionThreshold,
-        days_to_keep_motionless_videos: this.daysToKeepMotionlessVideos,
+        default_motion_threshold: parseInt(this.defaultMotionThreshold),
+        days_to_keep_motionless_videos: parseInt(this.daysToKeepMotionlessVideos),
         is_motion_outlined: this.isMotionOutlined,
       })
       .then(() => {
