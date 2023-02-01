@@ -51,7 +51,7 @@
           type="date"
           name="date"
           id="dateInput"
-          class="appearance-none w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+          class="appearance-none w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition text-left"
         />
         <p :class="`text-sm text-extra-gray-dark dark:text-extra-gray-light transition duration-250 ${isDateValid ? 'opacity-0' : 'opacity-1'}`">Invalid date</p>
         <button
