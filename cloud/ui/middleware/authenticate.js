@@ -7,7 +7,7 @@ export default async function(context) {
 
   if (!accessToken) {
     console.log('NO ACCESS TOKEN IN STORAGE');
-    return context.redirect('/login');
+    return context.redirect(`/login?redirectPath=${encodeURIComponent(context.route.fullPath)}`);
   }
 
   try {
@@ -15,7 +15,7 @@ export default async function(context) {
   }
   catch {
     console.log('AN ERROR OCCURRED REFRESHING TOKEN');
-    return context.redirect('/logout');
+    return context.redirect(`/logout?redirectPath=${encodeURIComponent(context.route.fullPath)}`);
   }
 
   try {
@@ -23,7 +23,7 @@ export default async function(context) {
   }
   catch {
     console.log('AN ERROR OCCURRED GETTING AUTH USER');
-    return context.redirect('/logout');
+    return context.redirect(`logout?redirectPath=${encodeURIComponent(context.route.fullPath)}`);
   }
 
 }

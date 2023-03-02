@@ -142,11 +142,9 @@
               <option value="2">2 days</option>
               <option value="3">3 days</option>
               <option value="4">4 days</option>
+              <option value="4">5 days</option>
               <option value="7">1 week</option>
               <option value="14">2 weeks</option>
-              <option value="31">1 month</option>
-              <option value="60">2 months</option>
-              <option value="90">3 months</option>
             </select>
           </div>
           <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">

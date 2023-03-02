@@ -38,19 +38,24 @@ import { logout } from '@/services/auth.js';
 export default {
   name: 'LogoutPage',
   layout: 'gateway',
-  asyncData({ redirect }) {
+  asyncData({ redirect, route }) {
     const accessToken = localStorage.getItem('accessToken');
 
+    let redirectPath = '/login';
+    if (route.query.redirectPath) {
+      redirectPath = `/login?redirectPath=${route.query.redirectPath}`
+    }
+
     if (!accessToken) {
-      return redirect('/login');
+      return redirect(redirectPath);
     }
 
     logout()
     .then(() => {
-      return redirect('/login');
+      return redirect(redirectPath);
     })
     .catch(() => {
-      return redirect('/login');
+      return redirect(redirectPath);
     });
   }
 }

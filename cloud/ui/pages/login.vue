@@ -51,10 +51,13 @@ export default {
     password: '',
     infoMessage: ''
   }),
-  asyncData({ redirect }) {
+  asyncData({ redirect, route }) {
     const accessToken = localStorage.getItem('accessToken');
     if (accessToken) {
-      redirect('/');
+      if (route.query.redirectPath) {
+        redirect(decodeURIComponent(route.query.redirectPath));
+      }
+      else redirect('/');
     }
   },
   methods: {
@@ -67,7 +70,10 @@ export default {
 
       login(credentials)
         .then(() => {
-          this.$router.push('/');
+          if (this.$route.query.redirectPath) {
+            this.$router.push(decodeURIComponent(this.$route.query.redirectPath));
+          }
+          else this.$router.push('/');
         })
         .catch((err) => {
           this.infoMessage = err.message;
