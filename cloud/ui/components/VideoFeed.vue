@@ -85,6 +85,18 @@
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 3c2.755 0 5.455.232 8.083.678.533.09.917.556.917 1.096v1.044a2.25 2.25 0 01-.659 1.591l-5.432 5.432a2.25 2.25 0 00-.659 1.591v2.927a2.25 2.25 0 01-1.244 2.013L9.75 21v-6.568a2.25 2.25 0 00-.659-1.591L3.659 7.409A2.25 2.25 0 013 5.818V4.774c0-.54.384-1.006.917-1.096A48.32 48.32 0 0112 3z" />
             </svg>
           </button>
+          <a v-if="!isFilterVisible && currentVideo" :href="currentVideo.video_url" download target="_blank">
+            <button>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              </svg>
+              </button>
+          </a>
+          <button v-if="!isFilterVisible && currentVideo" @click="share">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z" />
+            </svg>
+          </button>
           <button @click="next">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" :class="`w-8 h-8 ${currentVideoIndex + 1 === videosFilteredByCamera.length ? 'text-extra-gray-dark dark:text-extra-gray-light' : ''}`">
               <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
@@ -99,8 +111,8 @@
           :class="`appearance-none w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition ${isFilterVisible && currentFilterOption === 'footage' ? '' : 'hidden'}`"
         >
           <option value="all">All footage</option>
-          <option value="motion">With activity</option>
-          <option value="motionless">Without activity</option>
+          <option value="activity">With activity</option>
+          <option value="normal">Without activity</option>
         </select>
         <select
           v-model="camera"
@@ -152,24 +164,20 @@
 import { getVideos } from '@/services/videos.js';
 import { getClients } from '@/services/clients.js';
 
-const formatNumber = (num) => {
-  return num.toLocaleString('en-US', {
-    minimumIntegerDigits: 2,
-    useGrouping: false
-  });
-};
-
-
-const today = new Date();
-const initialDateFilter = `${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`
-
-
 export default {
   name: 'video-feed',
   props: {
     descriptionText: {
       type: String,
-      default: 'Latest footage',
+      default: 'Footage',
+    },
+    initialDateFilter: {
+      type: String,
+      required: true,
+    },
+    initialType: {
+      type: String,
+      default: 'motion'
     },
   },
   data: () => ({
@@ -189,24 +197,31 @@ export default {
     currentVideoIndex: 0,
     backgroundPlayerId: 1,
     playbackSpeed: 1.0,
-    type: 'motion',
+    type: '',
     camera: '',
-    dateFilter: initialDateFilter,
+    dateFilter: '',
     previousFilter: {
-      type: 'motion',
+      type: '',
       camera: '',
-      dateFilter: initialDateFilter,
+      dateFilter: '' 
     }
   }),
   fetch() {
-    this.getVideos();
+    this.dateFilter = this.initialDateFilter;
+    this.previousFilter.dateFilter = this.dateFilter;
+    this.type = this.initialType;
+
+    if (this.$route.query.date) {
+      this.dateFilter = this.$route.query.date;
+    }
+    this.getVideos(this.$route.query.time)
     this.getCameras();
   },
   beforeDestroy() {
     this.isUnmounted = true;
   },
   methods: {
-    getVideos() {
+    getVideos(startingVideoTime) {
       this.isLoading = true;
       this.videos = [];
       this.videosFilteredByCamera = [];
@@ -238,8 +253,10 @@ export default {
         }
         else this.videosFilteredByCamera = this.videos;
 
-
-        this.updateCurrentVideo(0);
+        if (startingVideoTime) {
+          this.updateCurrentVideo(this.videosFilteredByCamera.findIndex(({ time }) => time === startingVideoTime));
+        }
+        else this.updateCurrentVideo(0);
       })
       .catch((err) => {
         // TODO - implement error handling
@@ -307,6 +324,9 @@ export default {
         else this.videosFilteredByCamera = this.videos;
         this.updateCurrentVideo(0);
       }
+      else if (this.previousFilter.dateFilter !== this.dateFilter) {
+        this.$router.push(`/footage/${this.type}/${this.dateFilter}`);
+      }
       else this.getVideos();
 
 
@@ -322,7 +342,14 @@ export default {
     },
     prev() {
       this.updateCurrentVideo(this.currentVideoIndex - 1);
-    }
+    },
+    share() {
+      const shareUrl = `${window.location.hostname}/footage/${this.previousFilter.dateFilter}/${this.type}/&time=${this.currentVideo.time}`;
+      navigator.clipboard.writeText(shareUrl)
+        .then(() => {
+          window.alert("URL copied to clipboard");
+        })
+    },
   },
   computed: {
     isDateValid() {

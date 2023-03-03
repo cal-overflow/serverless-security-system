@@ -22,16 +22,19 @@
             <div class="w-full md:w-1/2">
               <label for="clipLength" class="font-bold text-right">Clip length</label>
             </div>
-            <input
+            <select
               v-model="clipLength"
-              type="number"
-              min="10"
-              max="600"
               name="clipLength"
               required
               :disabled="!hasPermissionToEdit"
               class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
-            />
+            >
+              <option value="10">10 seconds</option>
+              <option value="15">15 seconds</option>
+              <option value="20">20 seconds</option>
+              <option value="30">30 seconds</option>
+              <option value="60">1 minute</option>
+            </select>
           </div>
           <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
             The duration, in seconds, of clips to record.
@@ -43,16 +46,19 @@
             <div class="w-full md:w-1/2">
               <label for="clipsPerUpload" class="font-bold text-right">Clips per upload</label>
             </div>
-            <input
+            <select
               v-model="clipsPerUpload"
-              type="number"
-              min="1"
-              max="100"
               name="clipsPerUpload"
               required
               :disabled="!hasPermissionToEdit"
               class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
-            />
+            >
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
           </div>
           <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
             The number of clips to record before an attempt to upload.
