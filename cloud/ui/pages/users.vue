@@ -105,8 +105,9 @@ export default {
 
       getUsers()
       .then((users) => {
+        // Put the authenticated user at the front of the users array
+        users.sort((a, b) => a.name === this.authenticatedUser.name ? -1 : b.name === this.authenticatedUser.name ? 1 : 0);
         this.users = users;
-        console.log(users)
       })
       .catch((err) => {
         // TODO - implement error handling
