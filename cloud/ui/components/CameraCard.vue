@@ -6,7 +6,7 @@
       <p class="text-md"><span class="font-bold">Motion Threshold:</span> {{camera.motion_threshold}}</p>
       <p class="text-md">
         <span class="font-bold">Last upload:</span>
-        <nuxt-link :to="`/videos/${camera.last_upload_key}`" class="cursor-pointer hover:underline text-primary-light dark:text-primary-dark">
+        <nuxt-link :to="last_upload_url" class="cursor-pointer hover:underline text-primary-light dark:text-primary-dark">
           {{last_upload_time_formatted}}
         </nuxt-link>
       </p>
@@ -28,6 +28,17 @@ export default {
     last_upload_time_formatted() {
       const dateObj = new Date(parseFloat(this.camera.last_upload_time) * 1000);
       return dateObj.toLocaleString();
+    },
+    last_upload_url() {
+      const keySplitByForwardSlashes = this.camera.last_upload_key.split("/");
+      console.log(keySplitByForwardSlashes);
+      const footageType = keySplitByForwardSlashes[1];
+      const uploadDatePath = `${keySplitByForwardSlashes[2]}-${keySplitByForwardSlashes[3]}`;
+
+      const metadata = keySplitByForwardSlashes[4].split("_");
+      const uploadTime = metadata[0];
+      const clientId = metadata[1].split(".")[0];
+      return `footage/${footageType}/${uploadDatePath}?time=${uploadTime}&camera=${clientId}`;
     }
   }
 }

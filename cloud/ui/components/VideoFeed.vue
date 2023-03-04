@@ -175,9 +175,13 @@ export default {
       type: String,
       required: true,
     },
+    initialCamera: {
+      type: String,
+      default: '',
+    },
     initialType: {
       type: String,
-      default: 'motion'
+      default: 'all'
     },
   },
   data: () => ({
@@ -209,6 +213,7 @@ export default {
   fetch() {
     this.dateFilter = this.initialDateFilter;
     this.previousFilter.dateFilter = this.dateFilter;
+    this.previousFilter.camera = this.initialCamera;
     this.type = this.initialType;
 
     if (this.$route.query.date) {

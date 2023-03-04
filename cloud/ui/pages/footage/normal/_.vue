@@ -1,6 +1,6 @@
 <template>
   <div>
-    <video-feed initialType="normal" :descriptionText="`${initialDateFilter} Footage without motion`" :initialDateFilter="initialDateFilter" />
+    <video-feed initialType="normal" :descriptionText="`${initialDateFilter} Footage without motion`" :initialDateFilter="initialDateFilter" :initialCamera="$route.query.camera" />
   </div>
 </template>
 

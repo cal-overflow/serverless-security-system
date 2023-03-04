@@ -443,7 +443,7 @@ Resources:
     Properties:
       OriginAccessControlConfig:
         Name: !Sub '${AWS::StackName}-origin-access-control'
-        Description: !Sub 'Origin access control for ${FrontendS3Bucket.DomainName}'
+        Description: !Sub '${FrontendS3Bucket.DomainName} Origin access control'
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
@@ -452,7 +452,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub 'A CloudFront distribution for the static frontend hosted in the ${FrontendS3Bucket} bucket.'
+        Comment: !Sub '${AWS::StackName} - for the static frontend hosted in the ${FrontendS3Bucket} bucket.'
         DefaultCacheBehavior:
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
