@@ -156,6 +156,16 @@
         </div>
       </div>
     </div>
+    <alert v-if="shareableUrl" title="URL Copied" v-on:close="shareableUrl = undefined">
+      <input
+        :value="shareableUrl"
+        onclick="this.select();"
+        readonly
+        class="w-full resize-none px-4 py-2 mb-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+      />
+      <p>This shareable URL has been copied to your clipboard.</p>
+      <small><strong>Note:</strong> Only users with accounts can access this URL.</small>
+    </alert>
   </div>
 </template>
 
@@ -208,7 +218,8 @@ export default {
       type: '',
       camera: '',
       dateFilter: '' 
-    }
+    },
+    shareableUrl: undefined
   }),
   fetch() {
     this.dateFilter = this.initialDateFilter;
@@ -349,11 +360,8 @@ export default {
       this.updateCurrentVideo(this.currentVideoIndex - 1);
     },
     share() {
-      const shareUrl = `${window.location.hostname}/footage/${this.previousFilter.dateFilter}/${this.type}/&time=${this.currentVideo.time}`;
-      navigator.clipboard.writeText(shareUrl)
-        .then(() => {
-          window.alert("URL copied to clipboard");
-        })
+      this.shareableUrl = `${window.location.hostname}/footage/${this.previousFilter.dateFilter}/${this.type}/&time=${this.currentVideo.time}`;
+      navigator.clipboard.writeText(this.shareableUrl);
     },
   },
   computed: {

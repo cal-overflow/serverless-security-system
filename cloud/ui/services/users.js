@@ -34,14 +34,31 @@ export const getUser = async (id) => {
 };
 
 
-export const createUser = async (user) => {
-  const response = await fetch(`${API_URL}/users`, {
+export const editUser = async (id, user) => {
+  const response = await fetch(`${API_URL}/users/${id}`, {
     headers: {
       ...headers,
       'access-token': localStorage.getItem('accessToken')
     },
-    method: 'POST',
+    method: 'PATCH',
     body: JSON.stringify(user),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+
+  return await response.json();
+};
+
+
+export const deleteUser = async (id) => {
+  const response = await fetch(`${API_URL}/users/${id}`, {
+    headers: {
+      ...headers,
+      'access-token': localStorage.getItem('accessToken'),
+      method: 'DELETE',
+    }
   });
 
   if (!response.ok) {
