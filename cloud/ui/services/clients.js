@@ -34,3 +34,19 @@ export const getClient = async (id) => {
 };
 
 
+export const editClient = async ({ id, motion_threshold, name }) => {
+  const response = await fetch(`${API_URL}/clients/${id}`, {
+    headers: {
+      ...headers,
+      'access-token': localStorage.getItem('accessToken')
+    },
+    method: 'PATCH',
+    body: JSON.stringify({ name, motion_threshold }),
+  });
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+
+  return await response.json();
+};

@@ -1,6 +1,6 @@
 <template>
-  <div class="w-screen h-screen flex fixed top-0 left-0 p-0 m-0 bg-gray-500 bg-opacity-70">
-    <div class="w-4/5 sm:w-3/4 md:w-3/5 max-w-screen-sm h-auto p-6 mx-auto my-auto bg-card-light dark:bg-card-dark">
+  <div class="w-screen h-screen flex fixed top-0 left-0 p-0 m-0 bg-card-light dark:bg-card-dark sm:bg-gray-500 sm:bg-opacity-70">
+    <div class="w-full sm:w-3/4 md:w-3/5 max-w-screen-sm h-auto p-6 mx-auto my-auto bg-card-light dark:bg-card-dark">
       <div class="w-full flex justify-between flex-nowrap pb-4">
         <p class="text-3xl font-bold">
           {{title}}
