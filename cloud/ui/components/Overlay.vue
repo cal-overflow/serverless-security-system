@@ -1,6 +1,12 @@
 <template>
   <div class="w-screen h-screen flex fixed top-0 left-0 p-0 m-0 bg-card-light dark:bg-card-dark sm:bg-gray-500 sm:bg-opacity-70">
-    <div class="w-full sm:w-3/4 md:w-3/5 max-w-screen-sm h-auto p-6 mx-auto my-auto bg-card-light dark:bg-card-dark">
+    <div
+      class="w-full sm:w-3/4 md:w-3/5 max-w-screen-sm
+             p-6 mx-auto my-auto
+             h-full sm:h-auto
+             flex flex-col sm:flex-none justify-between
+             bg-card-light dark:bg-card-dark"
+    >
       <div class="w-full flex justify-between flex-nowrap pb-4">
         <p class="text-3xl font-bold">
           {{title}}
@@ -11,7 +17,12 @@
           </svg>
         </button>
       </div>
-      <slot />
+      <div>
+        <slot />
+      </div>
+      <div class="block sm:hidden">
+        <!-- This div is a spacer for small screens! -->
+      </div>
     </div>
   </div>
 </template>
