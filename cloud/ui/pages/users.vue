@@ -11,7 +11,7 @@
       />
       <!-- Extra user card for inviting users -->
       <user-card
-        v-if="!isLoading && authenticatedUser.admin"
+        v-if="authenticatedUser.admin"
       />
     </grid-view>
 
@@ -80,37 +80,25 @@ export default {
   middleware: 'authenticate',
   data: () => ({
     users: [],
-    isLoading: true,
     userBeingEdited: undefined,
     userBeingEditedWithoutChanges: undefined,
     userBeingDeleted: undefined,
     isSavingChanges: false,
     infoMessage: ''
   }),
-  asyncData({ user }) {
-    return { authenticatedUser: user };
-  },
-  mounted() {
-    this.getUsers();
-  },
-  methods: {
-    getUsers() {
-      this.isLoading = true;
-
-      getUsers()
-      .then((users) => {
-        // Put the authenticated user at the front of the users array
-        users.sort((a, b) => a.name === this.authenticatedUser.name ? -1 : b.name === this.authenticatedUser.name ? 1 : 0);
-        this.users = users;
-      })
+  async asyncData({ user }) {
+    const users = await getUsers()
       .catch((err) => {
         // TODO - implement error handling
         console.log(err);
-      })
-      .finally(() => {
-        this.isLoading = false;
       });
-    },
+
+    // Put the authenticated user at the front of the users array
+    users.sort((a, b) => a.name === user.name ? -1 : b.name === user.name ? 1 : 0);
+
+    return { users, authenticatedUser: user };
+  },
+  methods: {
     editUser(user) {
       this.userBeingEdited = { ...user };
       this.userBeingEditedWithoutChanges = { ...user };
@@ -133,7 +121,7 @@ export default {
       .then(() => {
         this.infoMessage = '';
         this.userBeingEdited = undefined;
-        this.getUsers();
+        this.$nuxt.refresh(); // refresh asyncData
       })
       .catch((err) => {
         this.infoMessage = err.message;
@@ -152,7 +140,7 @@ export default {
       .then(() => {
         this.infoMessage = '';
         this.userBeingDeleted = undefined;
-        this.getUsers();
+        this.$nuxt.refresh(); // refresh asyncData
       })
       .catch((err) => {
         // TODO - implement error handling

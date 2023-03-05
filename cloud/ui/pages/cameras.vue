@@ -61,34 +61,21 @@ export default {
   middleware: 'authenticate',
   data: () => ({
     cameras: [],
-    isLoading: true,
     isSavingChanges: false,
     infoMessage: '',
     cameraBeingEdited: undefined,
     cameraBeingEditedWithoutChanges: undefined,
   }),
-  asyncData({ user }) {
-    return { authenticatedUser: user };
-  },
-  mounted() {
-    this.getClients();
-  },
-  methods: {
-   getClients() {
-      this.isLoading = true;
-
-      getClients()
-      .then((cameras) => {
-        this.cameras = cameras;
-      })
+  async asyncData({ user }) {
+    const clients = await getClients()
       .catch((err) => {
         // TODO - implement error handling
         console.log(err);
-      })
-      .finally(() => {
-        this.isLoading = false;
       });
-    },
+
+    return { cameras: clients, authenticatedUser: user };
+  },
+  methods: {
     editCamera(camera) {
       this.cameraBeingEdited = { ...camera };
       this.cameraBeingEditedWithoutChanges = { ...camera };
@@ -101,7 +88,7 @@ export default {
       .then(() => {
         this.infoMessage = '';
         this.cameraBeingEdited = undefined;
-        this.getClients();
+        this.$nuxt.refresh(); // refresh asyncData
       })
       .catch((err) => {
         this.infoMessage = err.message;

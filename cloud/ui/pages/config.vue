@@ -226,11 +226,9 @@ export default {
       originalConfig,
       updatedConfig: { ...originalConfig },
       hasPermissionToEdit: user.admin,
+      infoMessage: 'Configuration synced'
     };
   },
-  data: () => ({
-    infoMessage: '',
-  }),
   mounted() {
     window.onbeforeunload = () => {
       if (this.hasChanges) {
@@ -252,11 +250,8 @@ export default {
         days_to_keep_motionless_videos: parseInt(this.updatedConfig.daysToKeepMotionlessVideos),
         is_motion_outlined: this.updatedConfig.isMotionOutlined,
       })
-      .then((newConfig) => {
-        this.infoMessage = 'Success';
-        this.originalConfig = mapConfig(newConfig);
-        this.updatedConfig = mapConfig(newConfig);
-
+      .then(() => {
+        this.$nuxt.refresh(); // refresh asyncData
       })
       .catch((err) => {
         this.infoMessage = err.message || 'An error occurred';
