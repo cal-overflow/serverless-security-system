@@ -56,7 +56,7 @@ Example response:
   "clips_per_upload": 1,
   "presign_url_expiration_time": 3600,
   "default_motion_threshold": 5000,
-  "days_to_keep_motionless_videos": 90
+  "days_to_keep_motionless_videos": 3
 }
 ```
 
