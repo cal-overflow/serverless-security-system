@@ -50,6 +50,9 @@ export default {
     },
   },
 
+  // Custom loader
+  loading: '~/components/CustomLoader.vue',
+
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
 }

@@ -20,7 +20,48 @@ module.exports = {
         'extra-gray-dark': '#5A5A5E',   // Extra gray color in dark mode
         'shadow-dark': '#212121',       // Dark shadow color
       },
-    }
+      keyframes: {
+        'blur-in': {
+          '0%': {
+            filter: 'blur(1rem)'
+          },
+          '100%': {
+            filter: 'blur(0px)'
+          }
+        },
+        'fade-in': {
+          '0%': {
+            opacity: '0%'
+          },
+          '100%': {
+            opacity: '100%',
+          }
+        },
+        'zoom-in': {
+          '0%': {
+            transform: 'scale(0%)'
+          },
+          '100%': {
+            transform: 'scale(100%)'
+          }
+        },
+      },
+      animation: {
+        'blur-fade-in-fast': 'blur-in 0.5s ease-in-out',
+        'blur-fade-in': 'blur-in 1s ease-in-out',
+        'blur-fade-in-slow': 'blur-in 1.5s ease-in-out',
+        'fade-in-fast': 'fade-in 0.25s ease-in-out',
+        'fade-in': 'fade-in 1s ease-in-out',
+        'fade-in-slow': 'fade-in 1.5s ease-in-out',
+        'zoom-in-slow': 'zoom-in 1.5s ease-in-out',
+        'zoom-in': 'zoom-in 1s ease-in-out',
+        'zoom-in-fast': 'zoom-in 0.5s ease-in-out',
+        'zoom-out-slow': 'zoom-in reverse 1.5s ease-in-out',
+        'zoom-out': 'zoom-in reverse 1s ease-in-out',
+        'zoom-out-fast': 'zoom-in reverse 0.5s ease-in-out',
+        'rotate-upside-down': 'rotate-upside-down 0.25s ease-in-out'
+      }
+    },
   },
   darkMode: 'media'
 };
