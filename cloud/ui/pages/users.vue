@@ -1,11 +1,6 @@
 <template>
-  <div class="max-w-screen-lg mx-auto">
-    <div class="bg-card-light dark:bg-card-dark m-6 p-4 shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
-      <p class="text-2xl font-bold">
-        Users
-      </p>
-    </div>
-    <div class="p-4 sm:grid grid-cols-2 lg:grid-cols-3 flex-nowrap">
+  <div>
+    <grid-view title="Users">
       <user-card
         v-for="user in users"
         :key="`user-${user.name}`"
@@ -18,7 +13,7 @@
       <user-card
         v-if="!isLoading && authenticatedUser.admin"
       />
-    </div>
+    </grid-view>
 
     <overlay v-if="userBeingEdited" title="Edit user" v-on:close="userBeingEdited = undefined">
       <p>Editing user {{userBeingEditedWithoutChanges.name}}</p>

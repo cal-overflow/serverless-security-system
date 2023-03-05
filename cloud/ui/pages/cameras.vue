@@ -1,11 +1,6 @@
 <template>
-  <div class="max-w-screen-lg mx-auto">
-    <div class="bg-card-light dark:bg-card-dark m-6 p-4 shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
-      <div>
-        <p class="text-2xl font-bold">Cameras</p>
-      </div>
-    </div>
-    <div class="p-4 sm:grid grid-cols-2 lg:grid-cols-3 flex-nowrap">
+  <div>
+    <grid-view title="Cameras">
       <camera-card
         v-for="camera in cameras"
         :key="`camera-${camera.id}`"
@@ -13,7 +8,7 @@
         :can-edit="authenticatedUser.admin"
         v-on:edit="editCamera(camera)"
       />
-    </div>
+    </grid-view>
     <overlay v-if="cameraBeingEdited" title="Edit camera" v-on:close="cameraBeingEdited = undefined">
       <p>Editing camera with id <code>{{cameraBeingEditedWithoutChanges.id}}</code></p>
       <form @submit.prevent="saveChanges" class="flex flex-wrap w-full">
