@@ -3,6 +3,7 @@ from config import get_config, update_config
 from users import create_user, delete_user, get_all_users, get_user, update_user
 from clients import get_all_clients, get_client, update_client
 from videos import get_videos
+from video_count import get_video_count
 
 
 def handler(event, context):
@@ -44,6 +45,12 @@ def handler(event, context):
     if event['rawPath'].startswith('/videos'):
         if method == 'GET':
             return get_videos(event, context)
+        else:
+            invalid_request_method = True
+
+    elif event['rawPath'].startswith('/video-count'):
+        if method == 'GET':
+            return get_video_count(event, context)
         else:
             invalid_request_method = True
 

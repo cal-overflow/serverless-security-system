@@ -2,7 +2,7 @@ import boto3
 import json
 import os
 
-client_properties_that_can_change_by_user_input = [ 'name', 'motion_threshold' ]
+client_properties_that_can_change_by_user_input = [ 'name', 'motion_threshold', 'is_active' ]
 BUCKET = os.environ.get('S3_BUCKET')
 
 s3_client = boto3.client('s3')

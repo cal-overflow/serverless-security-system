@@ -33,6 +33,7 @@ def handler(event, _):
         'id': object_key.split('_')[-1][:-4],
         'last_upload_key': object_key,
         'last_upload_time': event_epoch_time,
+        'is_active': True
     }
 
     client_object_key = f'configuration/clients/{client["id"]}.json'

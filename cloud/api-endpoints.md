@@ -6,16 +6,29 @@ The various endpoints are documented below. Note that these are rough notes and 
 
 ## Videos (footage)
 All `/videos` endpoints accept the following query parameters:
-- `date` -  A specific day to filter. Defaults to the current date (for wherever the the Lambda function is running).
+- `date` -  A specific day to filter. Defaults to the current date (for wherever the Lambda function is running).
 - `hours` - A range of hours to filter. Defaults to hours 0 through 23, which can result in a slow response time.
 - `camera` - A specific camera (client) id to filter.
 
 ### GET `/videos/all`
 Return all video footage
-### GET `/videos/motion`
-Return only video footage with motion
-### GET `/videos/motionless`
-Return only video footage with no motion
+### GET `/videos/activity`
+Return only video footage with motion (activity)
+### GET `/videos/normal`
+Return only video footage with no motion (normal)
+
+## Video Count
+A special endpoint for retrieving the number of videos saved for a given month. \
+All `/video-count` endpoints accept the following query parameters:
+- `date` -  A specific month to filter. Defaults to the current month (for wherever the Lambda function is running).
+- `camera` - A specific camera (client) id to filter.
+
+### GET `/video-count/all`
+Return the number of all video footage stored for the requested month
+### GET `/video-count/activity`
+Return the number of video footage with activity stored for the requested month
+### GET `/video-count/normal`
+Return the number of video footage without activity stored for the requested month
 
 ## Authentication
 ### POST `/auth/login`
@@ -135,7 +148,8 @@ Example response:
     "id": "1a2b3c",
     "motion_threshold": 5000,
     "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-    "last_upload_time": 1673670960
+    "last_upload_time": 1673670960,
+    "is_active": true
   }
 ]
 ```
@@ -150,7 +164,8 @@ Example response for `/client/1a2b3c`:
   "id": "1a2b3c",
   "motion_threshold": 5000,
   "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-  "last_upload_time": 1673670960
+  "last_upload_time": 1673670960,
+  "is_active": true
 }
 ```
 
@@ -171,7 +186,8 @@ Response:
   "id": "1a2b3c",
   "motion_threshold": 3500,
   "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-  "last_upload_time": 1673670960
+  "last_upload_time": 1673670960,
+  "is_active": true
 }
 ```
 
