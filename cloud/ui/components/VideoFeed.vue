@@ -360,7 +360,7 @@ export default {
       this.updateCurrentVideo(this.currentVideoIndex - 1);
     },
     share() {
-      this.shareableUrl = `${window.location.hostname}/footage/${this.previousFilter.dateFilter}/${this.type}/&time=${this.currentVideo.time}`;
+      this.shareableUrl = `${window.location.hostname}/footage/${this.type}/${this.previousFilter.dateFilter}?time=${this.currentVideo.time}&camera=${this.currentVideo.camera}`;
       navigator.clipboard.writeText(this.shareableUrl);
     },
   },
