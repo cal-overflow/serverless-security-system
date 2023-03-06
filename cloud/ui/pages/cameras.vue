@@ -84,7 +84,12 @@ export default {
       this.infoMessage = "Saving changes...";
       this.isSavingChanges = true;
 
-      editClient(this.cameraBeingEdited)
+      const changes = {
+        ...this.cameraBeingEdited,
+        motion_threshold: parseInt(this.cameraBeingEdited.motion_threshold),
+      };
+
+      editClient(changes)
       .then(() => {
         this.infoMessage = '';
         this.cameraBeingEdited = undefined;

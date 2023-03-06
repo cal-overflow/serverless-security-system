@@ -224,6 +224,7 @@ export default {
   fetch() {
     this.dateFilter = this.initialDateFilter;
     this.previousFilter.dateFilter = this.dateFilter;
+    this.camera = this.initialCamera;
     this.previousFilter.camera = this.initialCamera;
     this.type = this.initialType;
 
