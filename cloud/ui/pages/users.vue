@@ -18,29 +18,43 @@
     <overlay v-if="userBeingEdited" title="Edit user" v-on:close="userBeingEdited = undefined">
       <p>Editing user {{userBeingEditedWithoutChanges.name}}</p>
       <form @submit.prevent="saveChanges" class="flex flex-wrap w-full">
-        <label for="username" class="text-lg">Username</label>
-        <input
-          v-model="userBeingEdited.name"
-          type="text"
-          name="username"
-          id="username"
-          :disabled="isSavingChanges"
-          class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
-          autocorrect="off"
-          autocapitalize="none"
-        />
+        <div class="w-full">
+          <label for="username" class="text-lg">Username</label>
+          <input
+            v-model="userBeingEdited.name"
+            type="text"
+            name="username"
+            id="username"
+            minlength="3"
+            maxlength="24"
+            pattern="^([-A-Za-z0-9_]){3,24}$"
+            :disabled="isSavingChanges"
+            class="w-full resize-none px-4 py-2 my-1 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+            autocorrect="off"
+            autocapitalize="none"
+          />
+          <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
+            Must be 4-24 alphanumeric characters. Hyphens and underscores are allowed.
+          </p>
+        </div>
 
-        <label for="password" class="text-lg">Pin</label>
-        <input
-          v-model="userBeingEdited.pin"
-          type="password"
-          name="password"
-          minlength="4"
-          maxlength="64"
-          id="password"
-          :disabled="isSavingChanges"
-          class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
-        />
+        <div class="w-full">
+          <label for="password" class="text-lg">Pin</label>
+          <input
+            v-model="userBeingEdited.pin"
+            type="password"
+            name="password"
+            placeholder="****"
+            minlength="4"
+            maxlength="64"
+            id="password"
+            :disabled="isSavingChanges"
+            class="w-full resize-none px-4 py-2 my-1 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+          />
+          <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
+            Must be 4-64 characters.
+          </p>
+        </div>
 
         <div v-if="authenticatedUser.admin">
           <label for="admin" class="text-lg">Admin</label>
@@ -104,6 +118,7 @@ export default {
       this.userBeingEditedWithoutChanges = { ...user };
     },
     saveChanges() {
+      if (!this.hasChanges) return;
       this.infoMessage = "Saving changes...";
       this.isSavingChanges = true;
       const editedUser = {

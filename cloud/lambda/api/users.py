@@ -3,6 +3,7 @@ import json
 import os
 import time
 import uuid
+import re
 from decimal import Decimal
 
 
@@ -10,6 +11,8 @@ USERS_TABLE= os.environ.get('USERS_TABLE')
 PROJECTION_EXPRESSSION='#n, #a'
 EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', }
 ACCEPTED_KEYS=['name', 'admin', 'pin']
+username_pattern = re.compile("^([a-zA-Z0-9_-]){3,24}$")
+
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(USERS_TABLE)
@@ -25,6 +28,9 @@ def create_user(event, _):
 
     if len(new_user.keys()) == 0:
         return { 'statusCode': 400, 'body': json.dumps('Expected a payload') }
+
+    if not username_pattern.match(new_user['name']):
+        return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
 
     # Check that there isn't already a user with  this name
     get_item_response = table.get_item(
@@ -132,12 +138,16 @@ def update_user(event, _):
     delete_old_entry = False
     
     if 'name' in user_updates.keys():
+        if not username_pattern.match(user_updates['name']):
+            return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
+
         db_response_with_name = table.get_item(Key={ 'name': user_updates['name'] })
-        if db_response_with_name['Item'] is not None:
+        if 'Item' in db_response_with_name:
             return { 'statusCode': 409 , 'body': json.dumps('A user with the requested name already exists') }
 
         # wipe out the old user once their new entry is entered
         delete_old_entry = True
+
 
     updated_db_user = {
         **db_user,
