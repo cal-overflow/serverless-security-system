@@ -9,7 +9,7 @@
         <!-- line -->
         <div class="block bg-extra-gray-light dark:bg-extra-gray-dark w-14 h-8 rounded-full"></div>
         <!-- dot -->
-        <div :class="`dot absolute left-1 top-1 bg-white w-6 h-6 rounded-full transition ${item ? 'bg-primary-light dark:bg-primary-dark' : ''}`"></div>
+        <div :class="`dot absolute z-10 left-1 top-1 bg-white w-6 h-6 rounded-full transition ${item ? 'bg-primary-light dark:bg-primary-dark' : ''}`"></div>
       <!-- label -->
       </div>
       <div v-if="showLabel" class="ml-3 text-extra-gray-dark dark:text-extra-gray-light">
