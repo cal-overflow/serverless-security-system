@@ -39,6 +39,11 @@
           <option value="2500">Highest sensitivity (2500)</option>
         </select>
 
+        <div v-if="authenticatedUser.admin">
+          <label for="admin" class="text-lg">Status</label>
+          <toggle v-model="cameraBeingEdited.is_active" :showLabel="true" onLabel="Active" offLabel="Inactive" />
+        </div>
+
         <div class="flex justify-between w-full">
           <p class="text-sm my-auto">{{infoMessage}}</p>
           <input
@@ -72,6 +77,9 @@ export default {
         // TODO - implement error handling
         console.log(err);
       });
+
+      // Put the active clients at the front of the array
+      clients.sort((a, b) => a.is_active ? -1 : b.is_active ? 1 : 0);
 
     return { cameras: clients, authenticatedUser: user };
   },

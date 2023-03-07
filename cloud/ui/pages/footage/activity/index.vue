@@ -1,7 +1,5 @@
 <template>
-  <div>
-    <video-feed type="activity" descriptionText="Recent Footage with activity" :initialDateFilter="initialDateFilter" :initialCamera="$route.query.camera" />
-  </div>
+  <div></div>
 </template>
 
 <script>
@@ -18,8 +16,10 @@ const today = new Date();
 export default {
   name: 'IndexPage',
   middleware: 'authenticate',
-  data: () => ({
-    initialDateFilter: `${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`
-  })
+  asyncData({ redirect}) {
+    redirect(`/footage/activity/${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`);
+
+  }
 }
 </script>
+

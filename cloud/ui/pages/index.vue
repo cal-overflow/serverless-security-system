@@ -1,31 +1,42 @@
 <template>
-  <div class="max-w-screen-lg mx-auto">
-    <div class="bg-card-light dark:bg-card-dark m-6 p-4 shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
-      <p class="text-4xl font-bold">
-        Home
-      </p>
-    </div>
-    <video-feed type="activity" descriptionText="Recent footage" :initialDateFilter="initialDateFilter" />
-    <camera-overview />
+  <div>
+    <grid-view title="System Overview">
+      <camera-overview-card :cameras="cameras" />
+      <user-overview-card :users="users" />
+      <footage-preview-card subtext="with activity captured this month" :footage-count="activeFootageCount" />
+    </grid-view>
   </div>
 </template>
 
 <script>
-const formatNumber = (num) => {
-  return num.toLocaleString('en-US', {
-    minimumIntegerDigits: 2,
-    useGrouping: false
-  });
-};
-
-
-const today = new Date();
+import { getClients } from '@/services/clients.js';
+import { getUsers } from '@/services/users.js';
+import { getVideoCount } from '@/services/videos.js';
 
 export default {
   name: 'IndexPage',
   middleware: 'authenticate',
-  data: () => ({
-    initialDateFilter: `${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`
-  }),
-}
+  async asyncData({ user }) {
+
+    const tasks = [
+      getClients(),
+      getUsers(),
+      getVideoCount('activity', {}),
+    ];
+
+    const [clients, users, activeFootageCount] = await Promise.all(tasks)
+
+      .catch((err) => {
+        // TODO - implement error handling
+        console.log(err);
+      });
+
+    return {
+      cameras: clients,
+      users,
+      activeFootageCount,
+      authenticatedUser: user
+    };
+  },
+};
 </script>
