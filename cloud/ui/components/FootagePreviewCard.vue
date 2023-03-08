@@ -22,7 +22,7 @@
         {{subtext}}
       </p>
       <div class="text-center my-2">
-        <nuxt-link to="/footage/activity" class="text-primary-light dark:text-primary-dark underline hover:no-underline">
+        <nuxt-link :to="to" class="text-primary-light dark:text-primary-dark underline hover:no-underline">
           View footage
         </nuxt-link>
       </div>
@@ -42,6 +42,10 @@ export default {
     label: {
       type: String,
       default: 'Footage'
+    },
+    to: {
+      type: String,
+      default: '/footage/activity'
     },
     subtext: {
       type: String,

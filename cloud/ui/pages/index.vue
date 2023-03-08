@@ -3,7 +3,7 @@
     <grid-view title="System Overview">
       <camera-overview-card :cameras="cameras" />
       <user-overview-card :users="users" />
-      <footage-preview-card subtext="with activity captured this month" :footage-count="activeFootageCount" />
+      <footage-preview-card subtext="with activity captured this month" to="/footage/activity" :footage-count="activeFootageCount" />
     </grid-view>
   </div>
 </template>

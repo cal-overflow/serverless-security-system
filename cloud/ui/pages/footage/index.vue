@@ -2,13 +2,13 @@
   <div class="max-w-screen-lg mx-auto">
     <grid-view title="Footage">
       <!-- Footage with activity -->
-      <footage-preview-card label="With activity" subtext="captured so far this month" :footage-count="activeFootageCount" />
+      <footage-preview-card label="With activity" to="/footage/activity" subtext="captured so far this month" :footage-count="activeFootageCount" />
       
       <!-- Footage without activity -->
-      <footage-preview-card label="Without activity" subtext="captured so far this month*" :footage-count="normalFootageCount" />
+      <footage-preview-card label="Without activity" to="/footage/normal" subtext="captured so far this month*" :footage-count="normalFootageCount" />
 
       <!-- All Footage -->
-      <footage-preview-card label="All footage" subtext="captured so far this month*" :footage-count="allFootageCount" />
+      <footage-preview-card label="All footage" to="/footage/all" subtext="captured so far this month*" :footage-count="allFootageCount" />
     </grid-view>
 
     <div class="bg-card-light dark:bg-card-dark m-0 md:m-6 p-4 shadow-lg dark:shadow-shadow-dark hover:shadow-none hover:rounded motion-safe:animate-fade-in-fast transition">
@@ -24,8 +24,6 @@
         </small>
       </div>
     </div>
-    <card>
-    </card>
   </div>
 </template>
 
