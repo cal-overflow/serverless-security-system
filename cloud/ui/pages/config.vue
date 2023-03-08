@@ -157,6 +157,7 @@
                 :disabled="!hasPermissionToEdit"
                 class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 my-1 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
               >
+                <option value="0">Don't keep motionless videos</option>
                 <option value="1">1 day</option>
                 <option value="2">2 days</option>
                 <option value="3">3 days</option>
