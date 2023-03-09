@@ -1,11 +1,26 @@
 import { getVideos } from '@/services/videos.js';
 import { getClients } from '@/services/clients.js';
 
+const formatNumber = (num) => {
+  return num.toLocaleString('en-US', {
+    minimumIntegerDigits: 2,
+    useGrouping: false
+  });
+};
+
+const today = new Date();
+const defaultDateFilter = `${today.getFullYear()}-${formatNumber(today.getMonth() + 1)}-${formatNumber(today.getDate())}`
+
+
 export const getFootage = async ({ params, route, footageType }) => {
     const lastForwardSlashIndex = params.pathMatch.includes('/') ? params.pathMatch.lastIndexOf('/') : params.pathMatch.length;
     const anchorIndex = params.pathMatch.indexOf('#');
     const lastIndex = anchorIndex === -1 ? params.pathMatch.length : anchorIndex;
-    const dateFilter = params.pathMatch.substring(lastForwardSlashIndex + 1, lastIndex + 1);
+    let dateFilter = params.pathMatch.substring(lastForwardSlashIndex + 1, lastIndex + 1);
+
+    if (dateFilter === '') {
+      dateFilter = defaultDateFilter;
+    }
 
     const selectedCamera = route.query.camera;
     const startingVideoTime = route.query.time;
