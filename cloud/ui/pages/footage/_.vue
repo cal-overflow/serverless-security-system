@@ -81,8 +81,33 @@
         @video-end="next"
       />
 
-      <grid-card class="md:col-span-2 flex-col">
-          <p>Videos</p>
+      <grid-card class="block md:hidden w-full md:col-span-2 flex-col">
+        <div class="w-full flex justify-between items-center">
+          <p class="font-bold">Current video</p>
+          <label htmlFor="timePicker" class="relative flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="z-10 pointer-events-none w-8 h-8 absolute top-1/2 transform -translate-y-1/2 left-3">
+  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <select
+              v-model="selectedVideoIndex"
+              name="selectedVideoIndex"
+              required
+              class="appearance-none resize-none pl-14 pr-6 py-2 mx-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+            >
+              <option
+                v-for="(video, i) in filteredVideos"
+                :key="`video-${video.time}-link`"
+                :value="i"
+              >
+                {{video.time_formatted}}
+              </option>
+            </select>
+          </label>
+        </div>
+      </grid-card>
+
+      <grid-card class="hidden md:block md:col-span-2 flex-col">
+        <p class="font-bold">Videos</p>
         <div class="max-h-96 overflow-y-scroll">
           <p
             v-for="(video, i) in filteredVideos"
@@ -157,6 +182,11 @@ export default {
   computed: {
     hasChanges() {
       return this.originalFilter.dateFilter !== this.dateFilter || this.originalFilter.cameraFilter !== this.cameraFilter || this.originalFilter.footageType !== this.footageType;
+    },
+  },
+  watch: {
+    selectedVideoIndex(newIndex) {
+      this.updateCurrentVideo(newIndex);
     },
   },
   methods: {

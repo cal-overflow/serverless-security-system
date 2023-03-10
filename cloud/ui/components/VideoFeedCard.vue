@@ -1,5 +1,9 @@
 <template>
-  <grid-card>
+  <grid-card
+    class="w-full mx-auto 
+           px-0 py-0 sm:px-0 sm:py-0 md:p-4
+           border border-solid border-primary-light dark:border-primary-dark md:border-none"
+  >
     <video
       id="videoPlayer1"
       controls
