@@ -1,6 +1,6 @@
 from auth import get_authenticated_user, get_authenticated_user_api_call, login, logout, refresh_token, create_invitation, accept_invitation
 from config import get_config, update_config
-from users import create_user, delete_user, get_all_users, get_user, update_user
+from users import delete_user, get_all_users, get_user, update_user
 from clients import get_all_clients, get_client, update_client
 from videos import get_videos
 from video_count import get_video_count

@@ -5,6 +5,7 @@ import os
 import time
 import uuid
 from decimal import Decimal
+from users import username_pattern
 
 
 USERS_TABLE= os.environ.get('USERS_TABLE')
@@ -166,7 +167,7 @@ def create_invitation(event, _):
     if authenticated_user is None:
         return { 'statusCode': 401 }
 
-    if not authorized_user['admin']:
+    if not authenticated_user['admin']:
         return { 'statusCode': 403 }
 
     token_expiration = time.time() + USER_INVITATION_EXPIRATION_TIME
@@ -182,7 +183,7 @@ def create_invitation(event, _):
     # TODO - handle response code given the item is not created (put)
     table.put_item(Item=new_db_user)
     
-    return { 'statusCode': 200, 'body': json.dumps({ invite_token, token_expiration }) }
+    return { 'statusCode': 200, 'body': json.dumps({ 'invite_token': invite_token, 'token_expiration': token_expiration }) }
 
 
 def accept_invitation(event, _):
@@ -201,7 +202,7 @@ def accept_invitation(event, _):
     if 'Items' not in response.keys() or len(response['Items']) == 0:
         return { 'statusCode': 404, 'body': json.dumps('Invitation not found') }
 
-    db_user = response['Items']
+    db_user = response['Items'][0]
 
     if not db_user['name'].startswith('INVITATION-'):
         return { 'statusCode': 500 }
@@ -219,9 +220,6 @@ def accept_invitation(event, _):
         return { 'statusCode': 400, 'body': json.dumps('Invalid pin') }
 
     if 'name' in new_user.keys():
-        if not username_pattern.match(new_user['name']):
-            return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
-
         db_response_with_name = table.get_item(Key={ 'name': new_user['name'] })
         if 'Item' in db_response_with_name:
             return { 'statusCode': 409 , 'body': json.dumps('A user with the requested name already exists') }
@@ -246,5 +244,11 @@ def accept_invitation(event, _):
         ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
     )
 
-    return { 'statusCode': 200, 'body': json.dumps(response['Item']) }
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            **response['Item'],
+            'token_expiration': float(response['Item']['token_expiration'])
+        })
+    }
 
