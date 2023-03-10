@@ -8,6 +8,7 @@ from decimal import Decimal
 
 
 USERS_TABLE= os.environ.get('USERS_TABLE')
+USER_INVITATION_EXPIRATION_TIME = int(os.environ.get('INVITATION_EXPIRATION_TIME'))
 USER_TOKEN_EXPIRATION_TIME = int(os.environ.get('USER_TOKEN_EXPIRATION_TIME'))
 PROJECTION_EXPRESSSION='#n, #a, #t, #e'
 EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', '#t': 'token', '#e': 'token_expiration' }
@@ -155,3 +156,95 @@ def refresh_token(event, _):
         'statusCode': 200,
         'body': json.dumps({ 'access_token': new_token, 'token_expiration': token_expiration })
     }
+
+
+def create_invitation(event, _):
+    '''Creates a user invitation. Returns the temporary invitation token. Requires the authenticated user to be an admin.'''
+    
+    authenticated_user = get_authenticated_user(event, _)
+
+    if authenticated_user is None:
+        return { 'statusCode': 401 }
+
+    if not authorized_user['admin']:
+        return { 'statusCode': 403 }
+
+    token_expiration = time.time() + USER_INVITATION_EXPIRATION_TIME
+    invite_token = uuid.uuid4().hex
+
+    new_db_user = {
+        'name': f'INVITATION-{uuid.uuid4().hex}',
+        'admin': False,
+        'token': invite_token,
+        'token_expiration': Decimal(token_expiration),
+    }
+
+    # TODO - handle response code given the item is not created (put)
+    table.put_item(Item=new_db_user)
+    
+    return { 'statusCode': 200, 'body': json.dumps({ invite_token, token_expiration }) }
+
+
+def accept_invitation(event, _):
+    '''Accepts an invitation corresponding to the given token.'''
+    
+    invite_token = event['headers'].get('access-token', None)
+
+    response = table.query(
+        IndexName='TokenIndex',
+        KeyConditionExpression=Key('token').eq(invite_token),
+        Limit=1,
+        ProjectionExpression=PROJECTION_EXPRESSSION,
+        ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
+    )
+
+    if 'Items' not in response.keys() or len(response['Items']) == 0:
+        return { 'statusCode': 404, 'body': json.dumps('Invitation not found') }
+
+    db_user = response['Items']
+
+    if not db_user['name'].startswith('INVITATION-'):
+        return { 'statusCode': 500 }
+        
+
+    new_user = json.loads(event.get('body', '{}'))
+    if len(new_user.keys()) == 0:
+        return { 'statusCode': 400, 'body': json.dumps('Expected a payload') }
+
+    if 'admin' in new_user.keys():
+        return { 'statusCode': 403 }
+
+
+    if 'pin' not in new_user.keys():
+        return { 'statusCode': 400, 'body': json.dumps('Invalid pin') }
+
+    if 'name' in new_user.keys():
+        if not username_pattern.match(new_user['name']):
+            return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
+
+        db_response_with_name = table.get_item(Key={ 'name': new_user['name'] })
+        if 'Item' in db_response_with_name:
+            return { 'statusCode': 409 , 'body': json.dumps('A user with the requested name already exists') }
+
+    else:
+        return { 'statusCode': 400, 'body': json.dumps('Expected a name') }
+
+    updated_db_user = {
+        **db_user,
+        **new_user,
+    }
+
+    # TODO - handle response code given the item is not created/updated (put)
+    table.put_item(Item=updated_db_user)
+
+    # Delete the invitation entry
+    table.delete_item(Key={ 'name': db_user['name'] })
+
+    response = table.get_item(
+        Key={ 'name': updated_db_user['name'] },
+        ProjectionExpression=PROJECTION_EXPRESSSION,
+        ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
+    )
+
+    return { 'statusCode': 200, 'body': json.dumps(response['Item']) }
+

@@ -18,42 +18,6 @@ dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(USERS_TABLE)
 
 
-def create_user(event, _):
-    '''Creates a user based on the Username in the path. Requires the authenticated user to be an admin.'''
-    
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
-
-    new_user = json.loads(event.get('body', '{}'))
-
-    if len(new_user.keys()) == 0:
-        return { 'statusCode': 400, 'body': json.dumps('Expected a payload') }
-
-    if not username_pattern.match(new_user['name']):
-        return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
-
-    # Check that there isn't already a user with  this name
-    get_item_response = table.get_item(
-            Key={ 'name': new_user['name'] },
-            ProjectionExpression=PROJECTION_EXPRESSSION,
-            ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
-        )
-    if get_item_response is not None and get_item_response.get('Item', None) is not None:
-        return { 'statusCode': 409, 'body': json.dumps('The provided user already exists') }
-        
-
-    new_db_user = {
-        **new_user,
-        'Token': uuid.uuid4().hex,
-        'TokenExpiration': Decimal(time.time())
-    }
-
-    # TODO - handle response code given the item is not created (put)
-    table.put_item(Item=new_db_user)
-    
-    return { 'statusCode': 200, 'body': json.dumps(new_user) }
-
-
 def delete_user(event, _):
     '''Deletes a user based on the Username in the path. Requires the authenticated user to be an admin.'''
 

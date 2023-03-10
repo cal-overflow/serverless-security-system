@@ -56,6 +56,39 @@ The response will follow the same format as one returned from the `/auth/login` 
 ### POST `/auth/logout`
 Revokes the user's current access token.
 
+### POST `/auth/invitations`
+Returns an access token that can be provided for inviting another user. The token can be used with the PUT request to create a user. \
+This request does not require a body. All that is needed is the `access-token` passed in the header. \
+Example response:
+```json
+{
+  "token": "e0a84ef9e781436bbc774286c7b3d0d5",
+  "token_expiration": "1672533351.0030391216278076171875"
+}
+```
+
+### PUT `/auth/invitations
+**Requires Invitation token** \
+Accept an invite and create a new user. \
+Returns the newly created user. \
+Example body:
+```json
+{
+  "name": "christian",
+  "pin": "123abc"
+}
+```
+
+
+
+### POST `/auth/refresh`
+Return a fresh access token. This request does not require a body. All that is needed is the `access-token` passed in the header.
+
+The response will follow the same format as one returned from the `/auth/login` endpoint.
+
+### POST `/auth/logout`
+Revokes the user's current access token.
+
 
 ## Config
 ### GET `/config`
@@ -68,6 +101,7 @@ Example response:
   "clip_length": 60,
   "clips_per_upload": 1,
   "presign_url_expiration_time": 3600,
+  "invitation_url_expiration_time": 3600,
   "default_motion_threshold": 5000,
   "days_to_keep_motionless_videos": 3
 }
@@ -92,18 +126,6 @@ Example response:
     "admin": "true"
   }
 ]
-```
-
-### POST `/users`
-**Requires Admin priviliges** \
-Create a new user. \
-Example body:
-```json
-{
-  "name": "christian",
-  "pin": "123abc",
-  "admin": "true"
-}
 ```
 
 ### GET `/users/{username}`
@@ -190,4 +212,5 @@ Response:
   "is_active": true
 }
 ```
+
 

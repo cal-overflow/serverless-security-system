@@ -1,4 +1,4 @@
-from auth import get_authenticated_user, get_authenticated_user_api_call, login, logout, refresh_token
+from auth import get_authenticated_user, get_authenticated_user_api_call, login, logout, refresh_token, create_invitation, accept_invitation
 from config import get_config, update_config
 from users import create_user, delete_user, get_all_users, get_user, update_user
 from clients import get_all_clients, get_client, update_client
@@ -15,6 +15,13 @@ def handler(event, context):
     invalid_request_method = False
 
     if event['rawPath'].startswith('/auth'):
+        if event['rawPath'].startswith('/auth/invitations'):
+            if method == 'POST':
+                return create_invitation(event, context)
+            if method == 'PUT':
+                return accept_invitation(event, context)
+            else:
+                invalid_request_method = True
         if method == 'POST':
             if event['rawPath'].startswith('/auth/login'):
                 return login(event, context)
