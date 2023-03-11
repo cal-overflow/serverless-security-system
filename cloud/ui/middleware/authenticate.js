@@ -6,7 +6,6 @@ export default async function (context) {
   const accessToken = localStorage.getItem('accessToken');
 
   if (!accessToken) {
-    console.log('NO ACCESS TOKEN IN STORAGE');
     return context.redirect(
       `/login?redirectPath=${encodeURIComponent(context.route.fullPath)}`
     );
@@ -15,7 +14,6 @@ export default async function (context) {
   try {
     await refreshToken();
   } catch {
-    console.log('AN ERROR OCCURRED REFRESHING TOKEN');
     return context.redirect(
       `/logout?redirectPath=${encodeURIComponent(context.route.fullPath)}`
     );
@@ -24,7 +22,6 @@ export default async function (context) {
   try {
     context.user = await getAuthenticatedUser();
   } catch {
-    console.log('AN ERROR OCCURRED GETTING AUTH USER');
     return context.redirect(
       `logout?redirectPath=${encodeURIComponent(context.route.fullPath)}`
     );

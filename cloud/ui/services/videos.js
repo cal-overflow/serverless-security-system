@@ -5,7 +5,6 @@ const headers = {
 };
 
 export const getVideos = async (videoType = 'all', { date, camera, hours }) => {
-  console.log(hours);
   const options = {
     date,
     camera,

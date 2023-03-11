@@ -90,7 +90,7 @@ export default {
   props: {
     user: {
       type: Object,
-      required: false,
+      default: undefined,
     },
     canEdit: {
       type: Boolean,

@@ -114,11 +114,5 @@ export default {
       return 'No more information is available 😕';
     },
   },
-  watch: {
-    $route(to, from) {
-      console.log('route change to', to);
-      console.log('route change from', from);
-    },
-  },
 };
 </script>
