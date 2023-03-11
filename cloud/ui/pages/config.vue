@@ -119,6 +119,28 @@
 
             <div class="md:flex align-center items-center">
               <div class="w-full md:w-1/2">
+                <label for="inviteUrlExpirationTime" class="font-bold text-right">User Invitation Expiration Time</label>
+              </div>
+              <select
+                v-if="updatedConfig"
+                v-model="updatedConfig.inviteUrlExpirationTime"
+                name="inviteUrlExpirationTime"
+                required
+                :disabled="!hasPermissionToEdit"
+                class="appearance-none w-full md:w-1/2 resize-none px-4 py-2 my-1 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+              >
+                <option value="86400">24 hours</option>
+                <option value="172800">48 hours</option>
+                <option value="604800">1 week</option>
+                <option value="1209600">2 weeks</option>
+              </select>
+            </div>
+            <p class="text-sm text-extra-gray-dark dark:text-extra-gray-light">
+              How long user invites remain valid
+            </p>
+            <br />
+            <div class="md:flex align-center items-center">
+              <div class="w-full md:w-1/2">
                 <label for="presignUrlExpirationTime" class="font-bold text-right">Video URL expiration time</label>
               </div>
               <select
@@ -206,6 +228,7 @@ const mapConfig = (config) => ({
   clipLength: config.clip_length,
   clipsPerUpload: config.clips_per_upload,
   presignUrlExpirationTime: config.presign_url_expiration_time,
+  inviteUrlExpirationTime: config.invitation_url_expiration_time,
   defaultMotionThreshold: config.default_motion_threshold,
   daysToKeepMotionlessVideos: config.days_to_keep_motionless_videos,
   isMotionOutlined: config.is_motion_outlined,
@@ -247,6 +270,7 @@ export default {
         clip_length: parseInt(this.updatedConfig.clipLength),
         clips_per_upload: parseInt(this.updatedConfig.clipsPerUpload),
         presign_url_expiration_time: parseInt(this.updatedConfig.presignUrlExpirationTime),
+        invitation_url_expiration_time: parseInt(this.updatedConfig.inviteUrlExpirationTime),
         default_motion_threshold: parseInt(this.updatedConfig.defaultMotionThreshold),
         days_to_keep_motionless_videos: parseInt(this.updatedConfig.daysToKeepMotionlessVideos),
         is_motion_outlined: this.updatedConfig.isMotionOutlined,

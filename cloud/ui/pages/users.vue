@@ -136,7 +136,7 @@ export default {
     invite() {
       createInvite()
       .then(({ invite_token }) => {
-        this.inviteUrl = `${window.location.hostname}/invite?token=${invite_token}`;
+        this.inviteUrl = `https://${window.location.hostname}/invite?token=${invite_token}`;
       });
     },
     saveChanges() {

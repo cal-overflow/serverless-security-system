@@ -1,5 +1,5 @@
 <template>
-  <div class="w-screen h-screen flex fixed top-0 left-0 p-0 m-0 bg-card-light dark:bg-card-dark sm:bg-gray-500 sm:bg-opacity-70">
+  <div class="w-screen h-screen z-40 flex fixed top-0 left-0 p-0 m-0 bg-card-light dark:bg-card-dark sm:bg-gray-500 sm:bg-opacity-70">
     <div
       class="w-full sm:w-3/4 md:w-3/5 max-w-screen-sm
              p-6 mx-auto my-auto
