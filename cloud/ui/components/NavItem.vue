@@ -1,7 +1,9 @@
 <template>
   <nuxt-link
     :to="href"
-    :class="`p-3 hover:underline align-middle transition ${active ? 'text-primary-light dark:text-primary-dark' : 'dark:text-white'}`"
+    :class="`p-3 hover:underline align-middle transition ${
+      active ? 'text-primary-light dark:text-primary-dark' : 'dark:text-white'
+    }`"
   >
     <slot />
   </nuxt-link>
@@ -9,16 +11,16 @@
 
 <script>
 export default {
-  name: 'nav-item',
+  name: 'NavItem',
   props: {
     href: {
       type: String,
-      default: ''
+      default: '',
     },
     active: {
       type: Boolean,
-      default: false
-    }
+      default: false,
+    },
   },
 };
 </script>

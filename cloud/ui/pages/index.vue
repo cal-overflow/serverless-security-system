@@ -3,7 +3,11 @@
     <grid-view title="System Overview">
       <camera-overview-card :cameras="cameras" />
       <user-overview-card :users="users" />
-      <footage-preview-card subtext="with activity captured this month" to="/footage/activity" :footage-count="activeFootageCount" />
+      <footage-preview-card
+        subtext="with activity captured this month"
+        to="/footage/activity"
+        :footage-count="activeFootageCount"
+      />
     </grid-view>
   </div>
 </template>
@@ -17,25 +21,20 @@ export default {
   name: 'IndexPage',
   middleware: 'authenticate',
   async asyncData({ user }) {
+    const tasks = [getClients(), getUsers(), getVideoCount('activity', {})];
 
-    const tasks = [
-      getClients(),
-      getUsers(),
-      getVideoCount('activity', {}),
-    ];
-
-    const [clients, users, activeFootageCount] = await Promise.all(tasks)
-
-      .catch((err) => {
+    const [clients, users, activeFootageCount] = await Promise.all(tasks).catch(
+      (err) => {
         // TODO - implement error handling
         console.log(err);
-      });
+      }
+    );
 
     return {
       cameras: clients,
-      users: users.filter(({name}) => !name.startsWith('INVITATION-')),
+      users: users.filter(({ name }) => !name.startsWith('INVITATION-')),
       activeFootageCount,
-      authenticatedUser: user
+      authenticatedUser: user,
     };
   },
 };

@@ -1,10 +1,20 @@
 <template>
-  <overlay :title="title" v-on:close="exit">
-  <div class="px-4">
+  <overlay :title="title" @close="exit">
+    <div class="px-4">
       <slot />
       <div class="w-full flex justify-between">
-        <button @click="deny" class="rounded-md py-1 px-2 my-4 bg-gray-400 text-white transition duration-1000">{{denyLabel}}</button>
-        <button @click="confirm" class="rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000">{{confirmLabel}}</button>
+        <button
+          class="rounded-md py-1 px-2 my-4 bg-gray-400 text-white transition duration-1000"
+          @click="deny"
+        >
+          {{ denyLabel }}
+        </button>
+        <button
+          class="rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000"
+          @click="confirm"
+        >
+          {{ confirmLabel }}
+        </button>
       </div>
     </div>
   </overlay>
@@ -12,19 +22,19 @@
 
 <script>
 export default {
-  name: 'confirmation',
+  name: 'Confirmation',
   props: {
     title: {
       type: String,
-      default: "Prompt"
+      default: 'Prompt',
     },
     denyLabel: {
       type: String,
-      default: "Cancel"
+      default: 'Cancel',
     },
     confirmLabel: {
       type: String,
-      default: "Confirm"
+      default: 'Confirm',
     },
   },
   methods: {
@@ -36,8 +46,7 @@ export default {
     },
     deny() {
       this.$emit('deny');
-    }
-
-  }
-}
+    },
+  },
+};
 </script>

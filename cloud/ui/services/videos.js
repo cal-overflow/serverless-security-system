@@ -1,8 +1,10 @@
 const API_URL = process.env.NUXT_ENV_API_URL;
-const headers = {'Content-Type': 'application/json', 'Accept': 'application/json'};
+const headers = {
+  'Content-Type': 'application/json',
+  Accept: 'application/json',
+};
 
-
-export const getVideos = async (videoType='all', { date, camera, hours }) => {
+export const getVideos = async (videoType = 'all', { date, camera, hours }) => {
   console.log(hours);
   const options = {
     date,
@@ -10,17 +12,22 @@ export const getVideos = async (videoType='all', { date, camera, hours }) => {
     hours,
   };
   // remove all undefined (unset) options
-  Object.keys(options).forEach(key => options[key] === undefined ? delete options[key] : {});
+  Object.keys(options).forEach((key) =>
+    options[key] === undefined ? delete options[key] : {}
+  );
 
   const queryParams = new URLSearchParams(options).toString();
 
-  const response = await fetch(`${API_URL}/videos/${videoType}?${queryParams}`, {
-    headers: {
-      ...headers,
-      'access-token': localStorage.getItem('accessToken')
-    },
-    method: 'GET'
-  });
+  const response = await fetch(
+    `${API_URL}/videos/${videoType}?${queryParams}`,
+    {
+      headers: {
+        ...headers,
+        'access-token': localStorage.getItem('accessToken'),
+      },
+      method: 'GET',
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await response.text());
@@ -30,24 +37,28 @@ export const getVideos = async (videoType='all', { date, camera, hours }) => {
   return videos;
 };
 
-
-export const getVideoCount = async (videoType='all', { month, camera }) => {
+export const getVideoCount = async (videoType = 'all', { month, camera }) => {
   const options = {
     month,
     camera,
   };
   // remove all undefined (unset) options
-  Object.keys(options).forEach(key => options[key] === undefined ? delete options[key] : {});
+  Object.keys(options).forEach((key) =>
+    options[key] === undefined ? delete options[key] : {}
+  );
 
   const queryParams = new URLSearchParams(options).toString();
 
-  const response = await fetch(`${API_URL}/video-count/${videoType}?${queryParams}`, {
-    headers: {
-      ...headers,
-      'access-token': localStorage.getItem('accessToken')
-    },
-    method: 'GET'
-  });
+  const response = await fetch(
+    `${API_URL}/video-count/${videoType}?${queryParams}`,
+    {
+      headers: {
+        ...headers,
+        'access-token': localStorage.getItem('accessToken'),
+      },
+      method: 'GET',
+    }
+  );
 
   if (!response.ok) {
     throw new Error(await response.text());
@@ -56,4 +67,3 @@ export const getVideoCount = async (videoType='all', { month, camera }) => {
   const videoCount = await response.json();
   return videoCount;
 };
-

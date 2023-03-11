@@ -6,18 +6,25 @@
         :key="`camera-${camera.id}`"
         :camera="camera"
         :can-edit="authenticatedUser.admin"
-        v-on:edit="editCamera(camera)"
+        @edit="editCamera(camera)"
       />
     </grid-view>
-    <overlay v-if="cameraBeingEdited" title="Edit camera" v-on:close="cameraBeingEdited = undefined">
-      <p>Editing camera with id <code>{{cameraBeingEditedWithoutChanges.id}}</code></p>
-      <form @submit.prevent="saveChanges" class="flex flex-wrap w-full">
+    <overlay
+      v-if="cameraBeingEdited"
+      title="Edit camera"
+      @close="cameraBeingEdited = undefined"
+    >
+      <p>
+        Editing camera with id
+        <code>{{ cameraBeingEditedWithoutChanges.id }}</code>
+      </p>
+      <form class="flex flex-wrap w-full" @submit.prevent="saveChanges">
         <label for="name" class="text-lg">Camera name</label>
         <input
+          id="name"
           v-model="cameraBeingEdited.name"
           type="text"
           name="name"
-          id="name"
           maxlength="40"
           :disabled="isSavingChanges"
           class="w-full resize-none px-4 py-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
@@ -41,15 +48,24 @@
 
         <div v-if="authenticatedUser.admin">
           <label for="admin" class="text-lg">Status</label>
-          <toggle v-model="cameraBeingEdited.is_active" :showLabel="true" onLabel="Active" offLabel="Inactive" />
+          <toggle
+            v-model="cameraBeingEdited.is_active"
+            :show-label="true"
+            on-label="Active"
+            off-label="Inactive"
+          />
         </div>
 
         <div class="flex justify-between w-full">
-          <p class="text-sm my-auto">{{infoMessage}}</p>
+          <p class="text-sm my-auto">{{ infoMessage }}</p>
           <input
             type="submit"
             value="Save changes"
-            :class="`rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${hasChanges && !isSavingChanges ? 'opacity-1 cursor-pointer' : 'opacity-25 cursor-default'}`"
+            :class="`rounded-md py-1 px-2 my-4 bg-primary-light dark:bg-primary-dark text-white transition duration-1000 ${
+              hasChanges && !isSavingChanges
+                ? 'opacity-1 cursor-pointer'
+                : 'opacity-25 cursor-default'
+            }`"
           />
         </div>
       </form>
@@ -57,13 +73,23 @@
   </div>
 </template>
 
-
 <script>
 import { editClient, getClients } from '@/services/clients.js';
 
 export default {
   name: 'CamerasPage',
   middleware: 'authenticate',
+  async asyncData({ user }) {
+    const clients = await getClients().catch((err) => {
+      // TODO - implement error handling
+      console.log(err);
+    });
+
+    // Put the active clients at the front of the array
+    clients.sort((a, b) => (a.is_active ? -1 : b.is_active ? 1 : 0));
+
+    return { cameras: clients, authenticatedUser: user };
+  },
   data: () => ({
     cameras: [],
     isSavingChanges: false,
@@ -71,17 +97,13 @@ export default {
     cameraBeingEdited: undefined,
     cameraBeingEditedWithoutChanges: undefined,
   }),
-  async asyncData({ user }) {
-    const clients = await getClients()
-      .catch((err) => {
-        // TODO - implement error handling
-        console.log(err);
-      });
-
-      // Put the active clients at the front of the array
-      clients.sort((a, b) => a.is_active ? -1 : b.is_active ? 1 : 0);
-
-    return { cameras: clients, authenticatedUser: user };
+  computed: {
+    hasChanges() {
+      return (
+        JSON.stringify(this.cameraBeingEdited) !==
+        JSON.stringify(this.cameraBeingEditedWithoutChanges)
+      );
+    },
   },
   methods: {
     editCamera(camera) {
@@ -89,7 +111,7 @@ export default {
       this.cameraBeingEditedWithoutChanges = { ...camera };
     },
     saveChanges() {
-      this.infoMessage = "Saving changes...";
+      this.infoMessage = 'Saving changes...';
       this.isSavingChanges = true;
 
       const changes = {
@@ -98,24 +120,18 @@ export default {
       };
 
       editClient(changes)
-      .then(() => {
-        this.infoMessage = '';
-        this.cameraBeingEdited = undefined;
-        this.$nuxt.refresh(); // refresh asyncData
-      })
-      .catch((err) => {
-        this.infoMessage = err.message;
-      })
-      .finally(() => {
-        this.isSavingChanges = false;
-      });
+        .then(() => {
+          this.infoMessage = '';
+          this.cameraBeingEdited = undefined;
+          this.$nuxt.refresh(); // refresh asyncData
+        })
+        .catch((err) => {
+          this.infoMessage = err.message;
+        })
+        .finally(() => {
+          this.isSavingChanges = false;
+        });
     },
   },
-  computed: {
-    hasChanges() {
-      return JSON.stringify(this.cameraBeingEdited) !== JSON.stringify(this.cameraBeingEditedWithoutChanges);
-    },
-  },
-}
+};
 </script>
-

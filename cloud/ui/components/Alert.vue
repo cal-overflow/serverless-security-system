@@ -1,24 +1,24 @@
 <template>
-  <overlay :title="title" v-on:close="exit">
-  <div class="px-4">
-    <slot />
-  </div>
+  <overlay :title="title" @close="exit">
+    <div class="px-4">
+      <slot />
+    </div>
   </overlay>
 </template>
 
 <script>
 export default {
-  name: 'alert',
+  name: 'Alert',
   props: {
     title: {
       type: String,
-      default: "Prompt"
+      default: 'Prompt',
     },
   },
   methods: {
     exit() {
       this.$emit('close');
     },
-  }
-}
+  },
+};
 </script>

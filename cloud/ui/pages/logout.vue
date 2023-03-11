@@ -1,6 +1,8 @@
 <template>
   <div class="mx-auto flex h-screen">
-    <div class="max-w-screen-sm m-auto w-full sm:bg-card-light sm:dark:bg-card-dark p-8 sm:p-4 flex flex-wrap sm:shadow-lg sm:dark:shadow-shadow-dark sm:hover:shadow-none sm:hover:rounded motion-safe:animate-fade-in-fast transition animate-pulse">
+    <div
+      class="max-w-screen-sm m-auto w-full sm:bg-card-light sm:dark:bg-card-dark p-8 sm:p-4 flex flex-wrap sm:shadow-lg sm:dark:shadow-shadow-dark sm:hover:shadow-none sm:hover:rounded motion-safe:animate-fade-in-fast transition animate-pulse"
+    >
       <p class="text-3xl font-bold">Signing you out...</p>
 
       <form class="flex flex-wrap w-full">
@@ -43,7 +45,7 @@ export default {
 
     let redirectPath = '/login';
     if (route.query.redirectPath) {
-      redirectPath = `/login?redirectPath=${route.query.redirectPath}`
+      redirectPath = `/login?redirectPath=${route.query.redirectPath}`;
     }
 
     if (!accessToken) {
@@ -51,12 +53,12 @@ export default {
     }
 
     logout()
-    .then(() => {
-      return redirect(redirectPath);
-    })
-    .catch(() => {
-      return redirect(redirectPath);
-    });
-  }
-}
+      .then(() => {
+        return redirect(redirectPath);
+      })
+      .catch(() => {
+        return redirect(redirectPath);
+      });
+  },
+};
 </script>
