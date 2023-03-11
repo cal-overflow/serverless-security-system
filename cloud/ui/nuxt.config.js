@@ -30,7 +30,11 @@ export default {
   plugins: [],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
-  components: true,
+  components: [
+    '~/components/cards',
+    '~/components/helpers',
+    '~/components/interactive',
+  ],
 
   // Modules for dev and build (recommended): https://go.nuxtjs.dev/config-modules
   buildModules: [
@@ -54,7 +58,7 @@ export default {
   },
 
   // Custom loader
-  loading: '~/components/CustomLoader.vue',
+  loading: '~/components/helpers/CustomLoader.vue',
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
   build: {},
