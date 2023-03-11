@@ -57,8 +57,8 @@ export const deleteUser = async (id) => {
     headers: {
       ...headers,
       'access-token': localStorage.getItem('accessToken'),
+    },
       method: 'DELETE',
-    }
   });
 
   if (!response.ok) {

@@ -98,3 +98,43 @@ export const getAuthenticatedUser = async () => {
 };
 
 
+export const createInvite = async () => {
+  const accessToken = localStorage.getItem('accessToken');
+
+  const response = await fetch(`${API_URL}/auth/invitations`,
+    {
+      method: 'POST',
+      headers: {
+        ...headers,
+        'access-token': accessToken
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+  
+  return await response.json();
+};
+
+export const acceptInvite = async (invite_token, new_user) => {
+  const response = await fetch(`${API_URL}/auth/invitations`,
+    {
+      method: 'PUT',
+      headers: {
+        ...headers,
+        'access-token': invite_token
+      },
+      body: JSON.stringify(new_user),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(await response.text())
+  }
+  
+  return await response.json();
+
+
+}

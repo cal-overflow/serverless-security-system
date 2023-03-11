@@ -196,7 +196,7 @@ export default {
       this.selectedVideoIndex = index;
     },
     share() {
-      this.shareableUrl = `${window.location.hostname}/footage/${this.footageType}/${this.dateFilter}?time=${this.selectedVideo.time}&camera=${this.selectedVideoCamera.id}`;
+      this.shareableUrl = `https://${window.location.hostname}/footage/${this.footageType}/${this.dateFilter}?time=${this.selectedVideo.time}&camera=${this.selectedVideoCamera.id}`;
       navigator.clipboard.writeText(this.shareableUrl);
     },
     prev() {

@@ -33,7 +33,7 @@ export default {
 
     return {
       cameras: clients,
-      users,
+      users: users.filter(({name}) => !name.startsWith('INVITATION-')),
       activeFootageCount,
       authenticatedUser: user
     };

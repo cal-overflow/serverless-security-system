@@ -7,11 +7,12 @@
         :user="user"
         :can-edit="authenticatedUser.admin || isAuthenticatedAsUser(user)"
         :is-authenticated="isAuthenticatedAsUser(user)"
-        v-on:edit="editUser(user)"
+        @edit="editUser(user)"
       />
       <!-- Extra user card for inviting users -->
       <user-card
         v-if="authenticatedUser.admin"
+        @invite="invite"
       />
     </grid-view>
 
@@ -82,12 +83,23 @@
       <p>Are you sure you want to delete {{userBeingDeleted.name}}? This action cannot be undone.</p>
       <p>{{infoMessage}}</p>
     </confirmation>
+    <alert v-if="inviteUrl" title="Invite URL Copied" @close="inviteUrl = undefined">
+      <input
+        :value="inviteUrl"
+        onclick="this.select();"
+        readonly
+        class="w-full resize-none px-4 py-2 mb-2 bg-extra-gray-light dark:bg-extra-gray-dark rounded-lg outline-none focus:rounded-sm focus:ring focus:ring-primary-light dark:focus:ring-primary-dark transition"
+      />
+      <p>This invitation URL has been copied to your clipboard.</p>
+      <small><strong>Note:</strong> This URL may only be valid for a few days.</small>
+    </alert>
   </div>
 </template>
 
 
 <script>
 import { deleteUser, editUser, getUsers } from '@/services/users.js';
+import { createInvite } from '@/services/auth.js';
 
 export default {
   name: 'UsersPage',
@@ -98,7 +110,8 @@ export default {
     userBeingEditedWithoutChanges: undefined,
     userBeingDeleted: undefined,
     isSavingChanges: false,
-    infoMessage: ''
+    infoMessage: '',
+    inviteUrl: undefined
   }),
   async asyncData({ user }) {
     const users = await getUsers()
@@ -110,12 +123,21 @@ export default {
     // Put the authenticated user at the front of the users array
     users.sort((a, b) => a.name === user.name ? -1 : b.name === user.name ? 1 : 0);
 
-    return { users, authenticatedUser: user };
+    return {
+      users: users.filter(({name}) => !name.startsWith('INVITATION-')),
+      authenticatedUser: user
+    };
   },
   methods: {
     editUser(user) {
       this.userBeingEdited = { ...user };
       this.userBeingEditedWithoutChanges = { ...user };
+    },
+    invite() {
+      createInvite()
+      .then(({ invite_token }) => {
+        this.inviteUrl = `${window.location.hostname}/invite?token=${invite_token}`;
+      });
     },
     saveChanges() {
       if (!this.hasChanges) return;
@@ -151,7 +173,7 @@ export default {
     },
     deleteUser() {
       this.infoMessage = "Loading...";
-      deleteUser(this.userBeingDeletedWithoutChanges.name)
+      deleteUser(this.userBeingDeleted.name)
       .then(() => {
         this.infoMessage = '';
         this.userBeingDeleted = undefined;
