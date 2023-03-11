@@ -118,7 +118,7 @@ class Camera:
 
         video_writer.release()
 
-        if contains_motion and settings['days_to_keep_motionless_videos'] === 0:
+        if contains_motion and settings['days_to_keep_motionless_videos'] == 0:
             os.rm(temp_video_filename)
             return
 
