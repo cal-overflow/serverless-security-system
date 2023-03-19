@@ -458,7 +458,7 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
-        Comment: !Sub '${AWS::StackName} - for the static frontend hosted in the ${FrontendS3Bucket} bucket.'
+        Comment: !Sub '${AWS::StackName} - static frontend hosted in S3 bucket.'
         DefaultCacheBehavior:
           ViewerProtocolPolicy: redirect-to-https
           AllowedMethods:
