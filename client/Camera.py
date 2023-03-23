@@ -118,6 +118,10 @@ class Camera:
 
         video_writer.release()
 
+        if contains_motion and settings['days_to_keep_motionless_videos'] == 0:
+            os.rm(temp_video_filename)
+            return
+
         motion_flag = "CONTAINS-MOTION" if contains_motion else "NO-MOTION"
         completed_video_filename = f"{output_path}/completed/{time.strftime('%Y-%m-%d_%H-%M-%S', time.localtime(start_time))}_{motion_flag}.mp4"
         os.rename(temp_video_filename, completed_video_filename)

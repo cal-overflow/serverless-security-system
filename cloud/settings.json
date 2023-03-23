@@ -1,7 +1,7 @@
 {
-  "is_motion_outlined": true,
+  "is_motion_outlined": false,
   "clip_length": 60,
   "clips_per_upload": 1,
   "default_motion_threshold": 5000,
-  "days_to_keep_motionless_videos": 90
+  "days_to_keep_motionless_videos": 1
 }

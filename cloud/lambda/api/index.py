@@ -1,8 +1,9 @@
-from auth import get_authenticated_user, login, logout, refresh_token
+from auth import get_authenticated_user, get_authenticated_user_api_call, login, logout, refresh_token, create_invitation, accept_invitation
 from config import get_config, update_config
-from users import create_user, delete_user, get_all_users, get_user, update_user
+from users import delete_user, get_all_users, get_user, update_user
 from clients import get_all_clients, get_client, update_client
 from videos import get_videos
+from video_count import get_video_count
 
 
 def handler(event, context):
@@ -14,6 +15,13 @@ def handler(event, context):
     invalid_request_method = False
 
     if event['rawPath'].startswith('/auth'):
+        if event['rawPath'].startswith('/auth/invitations'):
+            if method == 'POST':
+                return create_invitation(event, context)
+            if method == 'PUT':
+                return accept_invitation(event, context)
+            else:
+                invalid_request_method = True
         if method == 'POST':
             if event['rawPath'].startswith('/auth/login'):
                 return login(event, context)
@@ -21,8 +29,11 @@ def handler(event, context):
                 return refresh_token(event, context)
             if event['rawPath'].startswith('/auth/logout'):
                 return logout(event, context)
-        else:
-            invalid_request_method = False
+        elif method == 'GET':
+            if event['rawPath'].startswith('/auth/user'):
+                return get_authenticated_user_api_call(event, context)
+
+        invalid_request_method = False
 
 
     authenticated_user = get_authenticated_user(event, context)
@@ -41,6 +52,12 @@ def handler(event, context):
     if event['rawPath'].startswith('/videos'):
         if method == 'GET':
             return get_videos(event, context)
+        else:
+            invalid_request_method = True
+
+    elif event['rawPath'].startswith('/video-count'):
+        if method == 'GET':
+            return get_video_count(event, context)
         else:
             invalid_request_method = True
 

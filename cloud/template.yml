@@ -27,12 +27,22 @@ Parameters:
   PresignUrlExpirationTime:
     Type: Number
     Description: The number (in seconds) that presigned url's are valid for. Note that this can is the default and can be later updated within the user interface.
-    Default: 604800
+    Default: 21600 # 6 hours
+
+  InvitationUrlExpirationTime:
+    Type: Number
+    Description: The number (in seconds) that invitation url's are valid for. Note that this can is the default and can be later updated within the user interface.
+    Default: 604800 # 1 week
 
   UserTokenExpirationTime:
     Type: Number
     Description: The number (in seconds) that user's authentication tokens are valid for.
     Default: 2419200 # 4 weeks
+
+  CachePolicyId:
+    Type: String
+    Default: 658327ea-f89d-4fab-a63d-7e88639e58f6 # id for the caching optimized policy
+    # See more policies at https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html#managed-cache-policies-list
 
 Resources:
   S3Bucket:
@@ -208,6 +218,7 @@ Resources:
           S3_BUCKET: !Ref S3Bucket
           USERS_TABLE: !Ref UserDynamoTable
           PRESIGN_URL_EXPIRATION_TIME: !Ref PresignUrlExpirationTime
+          INVITATION_EXPIRATION_TIME: !Ref InvitationUrlExpirationTime
           USER_TOKEN_EXPIRATION_TIME: !Ref UserTokenExpirationTime
           FUNCTION_NAME: !Sub '${AWS::StackName}-api'
           VIDEO_PURGER_FUNCTION_NAME: !Ref StaleVideoRemoverLambdaFn
@@ -215,6 +226,18 @@ Resources:
       Timeout: 30
       FunctionUrlConfig: # Necessary for outputing APIUrl (needed for frontend)
         AuthType: NONE
+        Cors:
+          AllowCredentials: False
+          AllowOrigins:
+            - '*' # TODO - make this reference the frontend cloudfront domain
+          AllowHeaders: 
+            - '*'
+          AllowMethods:
+            - 'GET'
+            - 'POST'
+            - 'PATCH'
+            - 'PUT'
+            - 'DELETE'
 
 
 
@@ -396,12 +419,89 @@ Resources:
       FunctionARN: !GetAtt UploadHandlerLambdaFn.Arn
       NotificationId: S3ObjectCreatedEvent
 
+
+  # The below resources are for the frontend (site) for the system
+  FrontendS3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: "index.html"
+        ErrorDocument: "index.html"
+
+  FrontendS3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendS3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: PublicReadForGetBucketObjects
+            Action: [ 's3:GetObject', 's3:ListBucket' ]
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Resource: 
+              - !Sub 'arn:aws:s3:::${FrontendS3Bucket}'
+              - !Sub 'arn:aws:s3:::${FrontendS3Bucket}/*'
+          
+  FrontendCloudFrontOriginAccessControl:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub '${AWS::StackName}-origin-access-control'
+        Description: !Sub '${FrontendS3Bucket.DomainName} Origin access control'
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  FrontendCloudFrontDistro:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub '${AWS::StackName} - static frontend hosted in S3 bucket.'
+        DefaultCacheBehavior:
+          ViewerProtocolPolicy: redirect-to-https
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          CachePolicyId: !Ref CachePolicyId
+          TargetOriginId: !Sub 's3-origin-${FrontendS3Bucket}'
+          Compress: true
+        Enabled: true
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: "/index.html"
+        Origins:
+        - DomainName: !GetAtt FrontendS3Bucket.DomainName
+          Id: !Sub 's3-origin-${FrontendS3Bucket}'
+          OriginAccessControlId: !GetAtt FrontendCloudFrontOriginAccessControl.Id
+          S3OriginConfig: # Necessary for cloudfront to work with s3 even though OAI is not being used
+            OriginAccessIdentity: ''
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+
+
 Outputs:
   S3BucketName:
     Value: !Ref S3Bucket
     Description: The name of the stacks S3 bucket where videos are stored.
+  
+  FrontendS3BucketName:
+    Value: !Ref FrontendS3Bucket
+    Description: The name of the stacks S3 bucket where the user interface is hosted.
 
   APIUrl:
     Value: !GetAtt APILambdaFnUrl.FunctionUrl
     Description: The serverless API URL
+
+  FrontendUrl:
+    Value: !Sub 'https://${FrontendCloudFrontDistro.DomainName}'
+    Description: The URL of the frontend's cloudfront distribution.
 

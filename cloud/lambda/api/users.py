@@ -3,49 +3,19 @@ import json
 import os
 import time
 import uuid
+import re
 from decimal import Decimal
 
 
 USERS_TABLE= os.environ.get('USERS_TABLE')
-PROJECTION_EXPRESSSION='#n, #a, #p'
-EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', '#p': 'pin' }
+PROJECTION_EXPRESSSION='#n, #a'
+EXPRESSION_ATTRIBUTE_NAMES={ '#n': 'name', '#a': 'admin', }
 ACCEPTED_KEYS=['name', 'admin', 'pin']
+username_pattern = re.compile("^([a-zA-Z0-9_-]){3,24}$")
+
 
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table(USERS_TABLE)
-
-
-def create_user(event, _):
-    '''Creates a user based on the Username in the path. Requires the authenticated user to be an admin.'''
-    
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
-
-    new_user = json.loads(event.get('body', '{}'))
-
-    if len(new_user.keys()) == 0:
-        return { 'statusCode': 400, 'body': json.dumps('Expected a payload') }
-
-    # Check that there isn't already a user with  this name
-    get_item_response = table.get_item(
-            Key={ 'name': new_user['name'] },
-            ProjectionExpression=PROJECTION_EXPRESSSION,
-            ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
-        )
-    if get_item_response is not None and get_item_response.get('Item', None) is not None:
-        return { 'statusCode': 409, 'body': json.dumps('The provided user already exists') }
-        
-
-    new_db_user = {
-        **new_user,
-        'Token': uuid.uuid4().hex,
-        'TokenExpiration': Decimal(time.time())
-    }
-
-    # TODO - handle response code given the item is not created (put)
-    table.put_item(Item=new_db_user)
-    
-    return { 'statusCode': 200, 'body': json.dumps(new_user) }
 
 
 def delete_user(event, _):
@@ -78,8 +48,11 @@ def get_user(event, _):
 
     response = table.get_item(
             Key={ 'name': user_to_get },
-            ProjectionExpression=PROJECTION_EXPRESSSION,
-            ExpressionAttributeNames=EXPRESSION_ATTRIBUTE_NAMES
+            ProjectionExpression=PROJECTION_EXPRESSSION + ', #p',
+            ExpressionAttributeNames={
+                **EXPRESSION_ATTRIBUTE_NAMES,
+                '#p': 'pin'
+            },
         )
 
     if 'Item' not in response.keys():
@@ -89,11 +62,7 @@ def get_user(event, _):
 
 
 def get_all_users(event, _):
-    '''Returns a user (based on the given user name). Returns None if the user does not exist. Requires the authenticated user to be an admin.'''
-
-    if not event['authenticated_user']['admin']:
-        return { 'statusCode': 403 }
-
+    '''Returns a user (based on the given user name). Returns None if the user does not exist.'''
 
     response = table.scan(
             ProjectionExpression=PROJECTION_EXPRESSSION,
@@ -133,12 +102,16 @@ def update_user(event, _):
     delete_old_entry = False
     
     if 'name' in user_updates.keys():
+        if not username_pattern.match(user_updates['name']):
+            return { 'statusCode': 400 , 'body': json.dumps('Invalid name') }
+
         db_response_with_name = table.get_item(Key={ 'name': user_updates['name'] })
-        if db_response_with_name['Item'] is not None:
+        if 'Item' in db_response_with_name:
             return { 'statusCode': 409 , 'body': json.dumps('A user with the requested name already exists') }
 
         # wipe out the old user once their new entry is entered
         delete_old_entry = True
+
 
     updated_db_user = {
         **db_user,

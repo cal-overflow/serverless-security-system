@@ -12,7 +12,7 @@ permissions:
 
 env:
   REGION: us-east-1
-  STACK_NAME: security-system
+  STACK_NAME: security-system-test # TODO - remove -test
   API_LAMBDA_FN_S3_KEY: lambda/apii${{ github.run_id	}}.zip
   UPLOAD_HANDLER_LAMBDA_FN_S3_KEY: lambda/upload_handler-${{ github.run_id }}.zip
   ATTACH_S3_NOTIFICATION_TO_LAMBDA_LAMBDA_FN_S3_KEY: lambda/attach_s3_upload_event_upload_handler_trigger-${{ github.run_id }}.zip
@@ -119,10 +119,46 @@ jobs:
           BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`S3BucketName`].OutputValue' --output text)
           aws s3 cp settings.json s3://$BUCKET/configuration/
 
+  deploy-system-frontend:
+    name: Deploy System UI
+    needs: [deploy-system-stack]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./cloud/ui
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@master
+
+      - name: Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: ./cloud/ui/.nvmrc
+
+      - name: Install dependencies
+        run: npm ci --prefer-offline --no-audit
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          role-to-assume: ${{ secrets.IAM_ROLE_ARN }}
+          aws-region: ${{ env.REGION }}
+
+      - name: Bundle and upload system UI
+        run: |
+          API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
+          API_URL_WITHOUT_TRAILING_SLASH=${API_URL:0:-1}
+          echo "NUXT_ENV_API_URL=$API_URL_WITHOUT_TRAILING_SLASH" >> .env
+          npm run generate
+
+          BUCKET=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendS3BucketName`].OutputValue' --output text)
+          aws s3 sync dist s3://$BUCKET
+
       - name: Generate Github Actions summary
         run: |
           API_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`APIUrl`].OutputValue' --output text)
+          FRONTEND_URL=$(aws cloudformation describe-stacks --stack-name=$STACK_NAME --region $REGION --query 'Stacks[0].Outputs[?OutputKey==`FrontendUrl`].OutputValue' --output text)
           echo "### System information :lock: :camera:" >> $GITHUB_STEP_SUMMARY
-          echo "Frontend: *Not yet implemented*" >> $GITHUB_STEP_SUMMARY
+          echo "Frontend: [$FRONTEND_URL]($FRONTEND_URL)" >> $GITHUB_STEP_SUMMARY
           echo "API: [$API_URL]($API_URL)" >> $GITHUB_STEP_SUMMARY
 

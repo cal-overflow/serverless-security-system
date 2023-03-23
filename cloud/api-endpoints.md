@@ -6,16 +6,29 @@ The various endpoints are documented below. Note that these are rough notes and 
 
 ## Videos (footage)
 All `/videos` endpoints accept the following query parameters:
-- `date` -  A specific day to filter. Defaults to the current date (for wherever the the Lambda function is running).
+- `date` -  A specific day to filter. Defaults to the current date (for wherever the Lambda function is running).
 - `hours` - A range of hours to filter. Defaults to hours 0 through 23, which can result in a slow response time.
 - `camera` - A specific camera (client) id to filter.
 
 ### GET `/videos/all`
 Return all video footage
-### GET `/videos/motion`
-Return only video footage with motion
-### GET `/videos/motionless`
-Return only video footage with no motion
+### GET `/videos/activity`
+Return only video footage with motion (activity)
+### GET `/videos/normal`
+Return only video footage with no motion (normal)
+
+## Video Count
+A special endpoint for retrieving the number of videos saved for a given month. \
+All `/video-count` endpoints accept the following query parameters:
+- `date` -  A specific month to filter. Defaults to the current month (for wherever the Lambda function is running).
+- `camera` - A specific camera (client) id to filter.
+
+### GET `/video-count/all`
+Return the number of all video footage stored for the requested month
+### GET `/video-count/activity`
+Return the number of video footage with activity stored for the requested month
+### GET `/video-count/normal`
+Return the number of video footage without activity stored for the requested month
 
 ## Authentication
 ### POST `/auth/login`
@@ -43,6 +56,39 @@ The response will follow the same format as one returned from the `/auth/login` 
 ### POST `/auth/logout`
 Revokes the user's current access token.
 
+### POST `/auth/invitations`
+Returns an access token that can be provided for inviting another user. The token can be used with the PUT request to create a user. \
+This request does not require a body. All that is needed is the `access-token` passed in the header. \
+Example response:
+```json
+{
+  "token": "e0a84ef9e781436bbc774286c7b3d0d5",
+  "token_expiration": "1672533351.0030391216278076171875"
+}
+```
+
+### PUT `/auth/invitations
+**Requires Invitation token** \
+Accept an invite and create a new user. \
+Returns the newly created user. \
+Example body:
+```json
+{
+  "name": "christian",
+  "pin": "123abc"
+}
+```
+
+
+
+### POST `/auth/refresh`
+Return a fresh access token. This request does not require a body. All that is needed is the `access-token` passed in the header.
+
+The response will follow the same format as one returned from the `/auth/login` endpoint.
+
+### POST `/auth/logout`
+Revokes the user's current access token.
+
 
 ## Config
 ### GET `/config`
@@ -55,8 +101,9 @@ Example response:
   "clip_length": 60,
   "clips_per_upload": 1,
   "presign_url_expiration_time": 3600,
+  "invitation_url_expiration_time": 3600,
   "default_motion_threshold": 5000,
-  "days_to_keep_motionless_videos": 90
+  "days_to_keep_motionless_videos": 3
 }
 ```
 
@@ -79,18 +126,6 @@ Example response:
     "admin": "true"
   }
 ]
-```
-
-### POST `/users`
-**Requires Admin priviliges** \
-Create a new user. \
-Example body:
-```json
-{
-  "name": "christian",
-  "pin": "123abc",
-  "admin": "true"
-}
 ```
 
 ### GET `/users/{username}`
@@ -135,7 +170,8 @@ Example response:
     "id": "1a2b3c",
     "motion_threshold": 5000,
     "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-    "last_upload_time": 1673670960
+    "last_upload_time": 1673670960,
+    "is_active": true
   }
 ]
 ```
@@ -150,7 +186,8 @@ Example response for `/client/1a2b3c`:
   "id": "1a2b3c",
   "motion_threshold": 5000,
   "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-  "last_upload_time": 1673670960
+  "last_upload_time": 1673670960,
+  "is_active": true
 }
 ```
 
@@ -171,7 +208,9 @@ Response:
   "id": "1a2b3c",
   "motion_threshold": 3500,
   "last_upload_key": "footage/normal/2023-1/14/04-36-00_1a2b3c.mp4",
-  "last_upload_time": 1673670960
+  "last_upload_time": 1673670960,
+  "is_active": true
 }
 ```
+
 

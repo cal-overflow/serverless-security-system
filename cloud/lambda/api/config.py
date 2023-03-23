@@ -5,6 +5,7 @@ import os
 BUCKET = os.environ.get('S3_BUCKET')
 USERS_TABLE = os.environ.get('USERS_TABLE')
 PRESIGN_URL_EXPIRATION_TIME = int(os.environ.get('PRESIGN_URL_EXPIRATION_TIME'))
+USER_INVITATION_EXPIRATION_TIME = int(os.environ.get('INVITATION_EXPIRATION_TIME'))
 USER_TOKEN_EXPIRATION_TIME = os.environ.get('USER_TOKEN_EXPIRATION_TIME')
 FUNCTION_NAME = os.environ.get('FUNCTION_NAME')
 VIDEO_PURGER_FUNCTION_NAME = os.environ.get('VIDEO_PURGER_FUNCTION_NAME')
@@ -13,7 +14,7 @@ SETTINGS_FILE_KEY = "configuration/settings.json"
 
 # Configuration
 def get_config(event, _):
-    '''Get the system configuration. Retrieves the settings file from S3 and attaches the PRESIGN_URL_EXPIRATION_TIME (lambda) environment variable.'''
+    '''Get the system configuration. Retrieves the settings file from S3 and attaches the lambda environment variable.'''
 
     s3_client = boto3.client('s3')
 
@@ -23,12 +24,13 @@ def get_config(event, _):
         settings = json.load(settings_file)
 
     settings['presign_url_expiration_time'] = PRESIGN_URL_EXPIRATION_TIME
+    settings['invitation_url_expiration_time'] = USER_INVITATION_EXPIRATION_TIME
     
     return { 'statusCode': 200, 'body': json.dumps(settings) }
 
 
 def update_config(event, _):
-    '''Update the system configuration. Overwrites the settings file in S3 and updates the PRESIGN_URL_EXPIRATION_TIME (lambda) environment variable. Requires the authenticated user to be an admin.'''
+    '''Update the system configuration. Overwrites the settings file in S3 and updates the lambda environment variables. Requires the authenticated user to be an admin.'''
 
     if not event['authenticated_user']['admin']:
         return { 'statusCode': 403 }
@@ -45,6 +47,8 @@ def update_config(event, _):
     if type(new_configuration['clips_per_upload']) != int:
         return { 'statusCode': 400 }
     if type(new_configuration['presign_url_expiration_time']) != int:
+        return { 'statusCode': 400 }
+    if type(new_configuration['invitation_url_expiration_time']) != int:
         return { 'statusCode': 400 }
     if type(new_configuration['default_motion_threshold']) != int:
         return { 'statusCode': 400 }
@@ -64,6 +68,7 @@ def update_config(event, _):
                     'S3_BUCKET': BUCKET,
                     'USERS_TABLE': USERS_TABLE,
                     'PRESIGN_URL_EXPIRATION_TIME': str(new_configuration['presign_url_expiration_time']),
+                    'INVITATION_EXPIRATION_TIME': str(new_configuration['invitation_url_expiration_time']),
                     'USER_TOKEN_EXPIRATION_TIME': USER_TOKEN_EXPIRATION_TIME,
                     'FUNCTION_NAME': FUNCTION_NAME,
                     'VIDEO_PURGER_FUNCTION_NAME': VIDEO_PURGER_FUNCTION_NAME,
@@ -72,6 +77,7 @@ def update_config(event, _):
         )
     
     del new_configuration['presign_url_expiration_time']
+    del new_configuration['invitation_url_expiration_time']
 
 
     if new_configuration['days_to_keep_motionless_videos'] < old_configuration['days_to_keep_motionless_videos']:

@@ -36,7 +36,7 @@ def upload_videos(folder, camera_id):
         item_full_path = f'{folder}/{item}'
 
         if os.path.isdir(item_full_path):
-            upload_files(item_full_path)
+            upload_videos(item_full_path, camera_id)
         if os.path.isfile(item_full_path):
             date, start_time, motion_flag = item_full_path.split(f'{folder}/')[1][:-4].split('_')
 
